@@ -1,0 +1,33 @@
+{
+  "name": "homebridge-my-wallbox",
+  "version": "1.0.0",
+  "description": "Wallbox Charger platform plugin for [HomeBridge](https://github.com/nfarina/homebridge).",
+  "main": "index.js",
+  "dependencies": {
+    "axios": "^0.25.0",
+    "ws": "^8.4.2",
+    "reconnecting-websocket": "^4.4.0"
+  },
+  "engines": {
+    "homebridge": "^1.4.0",
+    "node": "^14.18.0 || ^16.13.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/valiquette/homebridge-my-wallbox"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "homekit",
+    "wallbox"
+  ],
+  "author": "John Valiquette",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/valiquette/homebridge-my-wallbox/issues"
+  },
+  "homepage": "https://github.com/valiquette/homebridge-my-wallbox#readme"
+}
