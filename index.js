@@ -1,4 +1,4 @@
-const PlatformOrbit = require('./wallboxplatform')
+const PlatformWallbox = require('./wallboxplatform')
 
 module.exports = (homebridge) => {
   PlatformAccessory = homebridge.platformAccessory
@@ -8,5 +8,5 @@ module.exports = (homebridge) => {
   PluginName = 'homebridge-my-wallbox'
   PlatformName = 'wallbox'
   
-  homebridge.registerPlatform(PluginName, PlatformName, PlatformOrbit, true)
+  homebridge.registerPlatform(PluginName, PlatformName, PlatformWallbox, true)
 }

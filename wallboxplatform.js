@@ -19,7 +19,7 @@ class wallboxPlatform {
     this.userId
 		this.accessories=[]
     if(!config.email || !config.password){
-      this.log.error('Valid email and password are required in order to communicate with the b-hyve, please check the plugin config')
+      this.log.error('Valid email and password are required in order to communicate with wallbox, please check the plugin config')
     }
       this.log.info('Starting Wallbox Platform using homebridge API', api.version)
       if(api){
@@ -37,24 +37,27 @@ class wallboxPlatform {
 
   getDevices(){
     this.log.debug('Fetching Build info...')
-    this.log.info('Getting Account info...')
-    // login to the API and get the token
+    this.log.info('Getting Account info...') 
+		// login to the API and get the token
     this.wallboxapi.checkEmail(this.email).then(response=>{
       this.log.info('Email status %s',response.data.data.attributes.status)
+			
 			this.wallboxapi.signin(this.email,this.password).then(response=>{
 				this.log.debug('Found User ID %s',response.data.data.attributes.user_id)
 				this.log.debug('Found Token %s',response.data.data.attributes.token)
 				this.id=response.data.data.attributes.user_id 
 				this.token=response.data.data.attributes.token 
 				this.setTokenRefresh(response.data.data.attributes.ttl)
+				//get token
 				this.wallboxapi.getId(this.token,this.id).then(response=>{
 					this.log.debug('Found User ID %s',response.data.data.attributes.value)
 					this.userId=response.data.data.attributes.value
+					//get user id
 					this.wallboxapi.getUser(this.token,this.userId).then(response=>{
-						this.log.info('Found account for %s %s', response.data.data.name, response.data.data.surname)
-						//loop each charger
+						this.log.info('Found account for %s %s', response.data.data.name, response.data.data.surname)	
 						response.data.data.accessConfigs.forEach((accessConfig)=>{
 							accessConfig.chargers.forEach((charger)=>{
+								//loop each charger
 								this.wallboxapi.getChargerData(this.token,charger).then(response=>{
 									let chargerData=response.data.data.chargerData
 									let uuid=UUIDGen.generate(chargerData.uid)							
@@ -62,18 +65,17 @@ class wallboxPlatform {
 										this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
 										delete this.accessories[uuid]
 									}
-									let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
-									let lockService=lockAccessory.getService(Service.Tunnel)
-									lockService=this.lockMechanism.createLockService(chargerData)
-									this.lockMechanism.configureLockService(lockService,chargerData.locked)
-									this.updateStatus(lockService, chargerData.statusDescription)
-									lockAccessory.addService(lockService)
-									this.accessories[uuid]=lockAccessory                     
 									this.log.info('Adding Lock for %s charger ', chargerData.name)
 									this.log.debug('Registering platform accessory')
+									let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
+									//let lockService=lockAccessory.getService(Service.LockMechanism) //not reeded??
+									let lockService=this.lockMechanism.createLockService(chargerData)
+									this.lockMechanism.configureLockService(lockService,chargerData.locked)
+									lockAccessory.addService(lockService)
+									this.accessories[uuid]=lockAccessory                     
 									this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
 									this.setChargerRefresh(lockService,chargerData.id)
-
+									this.updateStatus(lockService, chargerData)
 								}).catch(err=>{this.log.error('Failed to get info for build', err)})
 							})
 						})
@@ -107,32 +109,43 @@ class wallboxPlatform {
 				setInterval(()=>{		
 					try{		
 						this.wallboxapi.getChargerData(this.token,id).then(response=>{
-							this.log.debug('refreshed charger %s',response.data.data.chargerData.id)
-							this.log.info('Charger status %S',response.data.data.chargerData.statusDescription)
-							this.updateStatus(lockService,response.data.data.chargerData.statusDescription)
+							let chargerData=response.data.data.chargerData
+							this.log.debug('refreshed charger %s',chargerData.id)
+							this.log.info('Charger status %s',chargerData.statusDescription)
+							this.updateStatus(lockService,chargerData)
 						}).catch(err=>{this.log.error('Failed signin to refresh charger', err)})
 					}catch(err){this.log.error('Failed to refresh charger', err)}	
 				}, this.rate*60*1000)
 			}
 
-		updateStatus(lockService,status){
-			switch(status){
+		updateStatus(lockService,chargerData){
+			switch(chargerData.statusDescription){
 				case 'Ready':
 					lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
 					break
+				case 'Charging':
+					lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					break	
+				case 'Connected: waiting for car demand':
+					lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					break	
 				case 'Offline':
-				this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection).toLocaleString())
+				this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection*1000).toLocaleString())
 				lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.GENERAL_FAULT)
-				break
+					break
 				case 'Locked':
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
-				break
+					break
 				default:
-					this.log.warn('Unknown device message received: %s',status)
-				break	
+					this.log.warn('Unknown device message received: %s',chargerData.statusDescription)
+					break	
 			}
 
 		}	

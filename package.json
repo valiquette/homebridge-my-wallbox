@@ -1,6 +1,6 @@
 {
   "name": "homebridge-my-wallbox",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Wallbox Charger platform plugin for [HomeBridge](https://github.com/nfarina/homebridge).",
   "main": "index.js",
   "dependencies": {
@@ -22,6 +22,7 @@
   "keywords": [
     "homebridge-plugin",
     "homekit",
+		"EV charger",
     "wallbox"
   ],
   "author": "John Valiquette",
