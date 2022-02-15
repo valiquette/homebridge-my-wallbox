@@ -68,7 +68,6 @@ class wallboxPlatform {
 									this.log.info('Adding Lock for %s charger ', chargerData.name)
 									this.log.debug('Registering platform accessory')
 									let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
-									//let lockService=lockAccessory.getService(Service.LockMechanism) //not reeded??
 									let lockService=this.lockMechanism.createLockService(chargerData)
 									this.lockMechanism.configureLockService(lockService,chargerData.locked)
 									lockAccessory.addService(lockService)

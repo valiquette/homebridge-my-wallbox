@@ -14,7 +14,7 @@
 
 This plugin has been tested or verified against hardware model/types
 - Wallbox Pulsar
-- Only been tested to date with email accounts, Google and Apple log in have not been tested
+- Only been tested to date with email based accounts, Google and Apple logins are not currently supported. 
 
 Other hardware models/types may still work with this plugin and any feedback on devices not listed is welcome.
 
@@ -28,14 +28,15 @@ Other hardware models/types may still work with this plugin and any feedback on 
 ```
 "platforms": [
 	{
-			"name": "Wallbox",
-			"email": "username@email.com",
-			"password": "password",
-			"_bridge": {
-					"username": "0E:6C:D4:F2:16:EB",
-					"port": 35919
-			},
-			"platform": "wallbox"
+		"name": "Wallbox",
+		"email": "username@email.com",
+		"password": "password",
+		"rate": 60,
+		"_bridge": {
+			"username": "0E:6C:D4:F2:16:EB",
+			"port": 35919
+		},
+		"platform": "wallbox"
 	}
 ]
 ```
