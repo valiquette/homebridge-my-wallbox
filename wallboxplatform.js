@@ -1,12 +1,14 @@
 'use strict'
 let wallboxAPI=require('./wallboxapi')
 let lockMechanism=require('./devices/lock')
+let battery=require('./devices/battery')
 
 class wallboxPlatform {
 
   constructor(log, config, api){
-    this.wallboxapi=new wallboxAPI(this,log)
-		this.lockMechanism=new lockMechanism(this,log)
+    this.wallboxapi=new wallboxAPI(this ,log)
+		this.lockMechanism=new lockMechanism(this, log)
+		this.battery=new battery(this, log)
 
     this.log=log
     this.config=config
@@ -14,7 +16,6 @@ class wallboxPlatform {
     this.password=config.password
     this.token
 		this.rate=config.rate
-		//this.ttl
 		this.id
     this.userId
 		this.accessories=[]
@@ -71,10 +72,13 @@ class wallboxPlatform {
 									let lockService=this.lockMechanism.createLockService(chargerData)
 									this.lockMechanism.configureLockService(lockService,chargerData.locked)
 									lockAccessory.addService(lockService)
+									let batteryService=this.battery.createBatteryService(chargerData)
+									this.battery.configureBatteryService(batteryService)
+									lockAccessory.addService(batteryService)
 									this.accessories[uuid]=lockAccessory                     
 									this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
-									this.setChargerRefresh(lockService,chargerData.id)
-									this.updateStatus(lockService, chargerData)
+									this.setChargerRefresh(lockService, batteryService, chargerData.id)
+									this.updateStatus(lockService, batteryService, chargerData)
 								}).catch(err=>{this.log.error('Failed to get info for build', err)})
 							})
 						})
@@ -103,7 +107,7 @@ class wallboxPlatform {
 			}
 		}	
 
-		setChargerRefresh(lockService,id){
+		setChargerRefresh(lockService, batteryService, id){
 			// Refresh charger status
 				setInterval(()=>{		
 					try{		
@@ -111,36 +115,46 @@ class wallboxPlatform {
 							let chargerData=response.data.data.chargerData
 							this.log.debug('refreshed charger %s',chargerData.id)
 							this.log.info('Charger status %s',chargerData.statusDescription)
-							this.updateStatus(lockService,chargerData)
+							this.updateStatus(lockService, batteryService, chargerData)
 						}).catch(err=>{this.log.error('Failed signin to refresh charger', err)})
 					}catch(err){this.log.error('Failed to refresh charger', err)}	
 				}, this.rate*60*1000)
 			}
 
-		updateStatus(lockService,chargerData){
+		updateStatus(lockService, batteryService, chargerData){
 			switch(chargerData.statusDescription){
 				case 'Ready':
-					lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 					break
 				case 'Charging':
-					lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(chargerData.stateOfCharge)
+					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
 					break	
 				case 'Connected: waiting for car demand':
-					lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 					break	
 				case 'Offline':
 				this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection*1000).toLocaleString())
-				lockService.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.GENERAL_FAULT)
+					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.GENERAL_FAULT)
 					break
 				case 'Locked':
+					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.SECURED)
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
+					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 					break
 				default:
 					this.log.warn('Unknown device message received: %s',chargerData.statusDescription)

@@ -1,5 +1,10 @@
 # Changes
 
+## 1.0.4
+Update
+- Added additional detail for battery state and cable connected in HomeKit.
+- Added verified badge.
+
 ## 1.0.3
 Update
 - Cleanup Code.

@@ -3,10 +3,10 @@
 </p>
 
 # homebridge-my-wallbox
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 <br>Wallbox platform plugin for [Homebridge](https://github.com/nfarina/homebridge).
 
 ## About
-
 
 <br> Supports the ablity to lock and unlock charger from HomeKit
 
