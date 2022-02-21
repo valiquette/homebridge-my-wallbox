@@ -1,5 +1,10 @@
 # Changes
 
+## 1.0.5
+Update
+- Improved status updates.
+- Removed Null warnign condition.
+
 ## 1.0.4
 Update
 - Added additional detail for battery state and cable connected in HomeKit.

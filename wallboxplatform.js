@@ -122,27 +122,29 @@ class wallboxPlatform {
 			}
 
 		updateStatus(lockService, batteryService, chargerData){
+			let stateOfCharge=0
+			if(chargerData.stateOfCharge)(stateOfCharge=chargerData.stateOfCharge)
 			switch(chargerData.statusDescription){
 				case 'Ready':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
 					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+					//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 					break
 				case 'Charging':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
 					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-					batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(chargerData.stateOfCharge)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.lockedD)
+					//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
+					batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(stateOfCharge)
 					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
 					break	
 				case 'Connected: waiting for car demand':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
 					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+					//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 					break	
 				case 'Offline':
@@ -152,8 +154,8 @@ class wallboxPlatform {
 				case 'Locked':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
 					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.SECURED)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+					//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
 					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 					break
 				default:

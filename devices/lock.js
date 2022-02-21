@@ -51,7 +51,6 @@ lockMechanism.prototype={
   },
 
 	getLockCurrentState: function (lockService, callback) {
-		//this.log.info('get state')
 		let currentValue=lockService.getCharacteristic(Characteristic.LockCurrentState).value
 		callback(null,currentValue)
 	},
@@ -65,25 +64,21 @@ lockMechanism.prototype={
 		if (value == true) {
 			this.log.info('%s locked',lockService.getCharacteristic(Characteristic.Name).value)
 			lockService.getCharacteristic(Characteristic.LockCurrentState).updatevalue(Characteristic.LockCurrentState.SECURED)
-			//close routine
 		} 
 		else {
 			this.log.info('%s unlocked',lockService.getCharacteristic(Characteristic.Name).value)
 			lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
-			//open routine
 		}
 		callback()
 		}
 	},
 
 	getLockTargetState: function (lockService, callback) {
-		//this.log.info('get target')
 		let currentValue=lockService.getCharacteristic(Characteristic.LockTargetState).value
 		callback(null,currentValue)
 	},
 
 	setLockTargetState: function (lockService, value, callback) {
-		//this.log.info('set target')
 		if(lockService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
 		}
@@ -95,7 +90,6 @@ lockMechanism.prototype={
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
 				})
-				//close routine
 			} 
 			else{
 				this.log.info('Unlocking %s',lockService.getCharacteristic(Characteristic.Name).value)
@@ -105,7 +99,6 @@ lockMechanism.prototype={
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
 				})
-				//open routine
 			}
 			callback()
 		}
