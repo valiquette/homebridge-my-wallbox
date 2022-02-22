@@ -15,7 +15,7 @@ class wallboxPlatform {
     this.email=config.email
     this.password=config.password
     this.token
-		this.rate=config.rate
+		this.refreshRate=config.rate
 		this.id
     this.userId
 		this.accessories=[]
@@ -122,7 +122,7 @@ class wallboxPlatform {
 							this.updateStatus(lockService, batteryService, chargerData)
 						}).catch(err=>{this.log.error('Failed signin to refresh charger', err)})
 					}catch(err){this.log.error('Failed to refresh charger', err)}	
-				}, this.rate*60*1000)
+				}, this.refreshRate*60*1000)
 			}
 
 		updateStatus(lockService, batteryService, chargerData){
