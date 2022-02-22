@@ -68,13 +68,17 @@ class wallboxPlatform {
 									}
 									this.log.info('Adding Lock for %s charger ', chargerData.name)
 									this.log.debug('Registering platform accessory')
+
 									let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
 									let lockService=this.lockMechanism.createLockService(chargerData)
 									this.lockMechanism.configureLockService(lockService,chargerData.locked)
 									lockAccessory.addService(lockService)
+									
 									let batteryService=this.battery.createBatteryService(chargerData)
 									this.battery.configureBatteryService(batteryService)
+									lockAccessory.getService(Service.LockMechanism).addLinkedService(batteryService)
 									lockAccessory.addService(batteryService)
+
 									this.accessories[uuid]=lockAccessory                     
 									this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
 									this.setChargerRefresh(lockService, batteryService, chargerData.id)
@@ -135,7 +139,7 @@ class wallboxPlatform {
 				case 'Charging':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
 					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.lockedD)
+					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
 					//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(stateOfCharge)
 					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)

@@ -3,7 +3,8 @@
 ## 1.0.5
 Update
 - Improved status updates.
-- Removed Null warnign condition.
+- Improved error logging.
+- Removed Null warning condition.
 
 ## 1.0.4
 Update
