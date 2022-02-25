@@ -28,7 +28,7 @@ lockMechanism.prototype={
     this.log.debug("create Lock service for %s, serial number %s",device.name, device.serialNumber )
 		let lockService=new Service.LockMechanism(device.name,device.id)
 		lockService
-		.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
+			.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
 			.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
 			.setCharacteristic(Characteristic.OutletInUse,false)
 			.setCharacteristic(Characteristic.AccessoryIdentifier, device.uid)
@@ -86,6 +86,7 @@ lockMechanism.prototype={
 			if (value == true) {
 				this.log.info('Locking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
+				//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
@@ -94,7 +95,7 @@ lockMechanism.prototype={
 			else{
 				this.log.info('Unlocking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-				lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.SECURED)
+				//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.SECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)

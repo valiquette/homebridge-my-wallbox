@@ -117,7 +117,7 @@ wallboxAPI.prototype={
 
 	lock: async function(token,chargerId,value){
 		try {  
-			this.log.debug('Setting charger lock state for %s',chargerId,value)
+			this.log.debug('Setting charger lock state for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
 					url: endpoint+'v2/charger/'+chargerId,
@@ -127,6 +127,55 @@ wallboxAPI.prototype={
 					},
 					data:{
 						"locked": value
+					},
+					responseType: 'json'
+			}).catch(err=>{this.log.error('Error locking charger config %s', JSON.stringify(err.config,null,2))})
+			if(response){this.log.debug('put lock response',response.status)}
+			return response
+		}catch(err) {this.log.error('Error setting lock state config %s', err)}
+	},
+
+	setAmps: async function(token,chargerId,value){
+		try {  
+			this.log.debug('Setting amperage for %s to %s',chargerId,value)
+			let response = await axios({
+					method: 'put',
+					url: endpoint+'v2/charger/'+chargerId,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					data:{
+						"maxChargingCurrent": value
+					},
+					responseType: 'json'
+			}).catch(err=>{this.log.error('Error setting amperage %s', JSON.stringify(err.config,null,2))})
+			if(response){this.log.debug('put setAmps response',response.status)}
+			return response
+		}catch(err) {this.log.error('Error setting amperage %s', err)}
+	},
+
+	remoteAction: async function(token,chargerId,value){
+		try {  
+			this.log.debug('Setting charging state for %s to %s',chargerId,value)
+			let action
+			switch(value){
+				case "start":
+					action=1
+					break
+				case "pause":
+					action=2
+				break
+			}
+			let response = await axios({
+					method: 'post',
+					url: endpoint+'v3/chargers/'+chargerId+'/remote-action',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					data:{
+						"action": action
 					},
 					responseType: 'json'
 			}).catch(err=>{this.log.error('Error locking charger config %s', JSON.stringify(err.config,null,2))})

@@ -26,7 +26,7 @@
 				"placeholder": "password",
 				"required": true
 			},
-			"rate": {
+			"refreshRate": {
 				"title": "Refresh Rate Minutes",
 				"description": "Polling time in minutes.",
 				"type": "integer",
@@ -34,6 +34,12 @@
 				"maximum": 1440,
 				"required": true,
 				"default": 60
+			},
+			"showControls": {
+				"title": "Expose Control for Amps and Start/Stop Charging",
+				"type": "boolean",
+				"required": true,
+				"default": false
 			}
 		}
 	},
@@ -65,7 +71,14 @@
 			"type": "flex",
 			"flex-flow": "row wrap",
 			"items": [
-				"rate"
+				"refreshRate"
+			]
+		},
+		{
+			"type": "flex",
+			"flex-flow": "row wrap",
+			"items": [
+				"showControls"
 			]
 		}
 	]
