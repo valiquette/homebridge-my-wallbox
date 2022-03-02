@@ -204,8 +204,8 @@ class wallboxPlatform {
   //**
   configureAccessory(accessory){
     // Added cached devices to the accessories arrary
-    this.log.debug('Found cached accessory %s', accessory.displayName);
-    this.accessories[accessory.UUID]=accessory;
+    this.log.debug('Found cached accessory %s', accessory.displayName)
+    this.accessories[accessory.UUID]=accessory
   }
   
 }
