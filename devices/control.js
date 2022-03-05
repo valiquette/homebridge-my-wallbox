@@ -11,13 +11,15 @@ control.prototype={
 
   createControlService(device, type){
     this.log.debug('adding new control')
-		let currentAmps=Math.round((device.maxChargingCurrent-32)*5/9)
-		let controlService=new Service.Thermostat(type, type)
+		//let currentAmps=Math.round((device.maxChargingCurrent-32)*5/9)
+		let currentAmps=((device.maxChargingCurrent-32)*5/9).toFixed(2)
+		let currentTemp=((0-32)*5/9).toFixed(2)
+		let controlService=new Service.Thermostat(type, device.id)
     controlService 
       .setCharacteristic(Characteristic.Name, type)
       .setCharacteristic(Characteristic.StatusFault,false)
-			.setCharacteristic(Characteristic.TargetTemperature, currentAmps) //4.5)
-			.setCharacteristic(Characteristic.CurrentTemperature, -18)
+			.setCharacteristic(Characteristic.TargetTemperature, currentAmps) //4.4444
+			.setCharacteristic(Characteristic.CurrentTemperature, currentTemp) //-17.7778
 			.setCharacteristic(Characteristic.TemperatureDisplayUnits,false)
 			.setCharacteristic(Characteristic.TargetHeatingCoolingState,0)
 			.setCharacteristic(Characteristic.CurrentHeatingCoolingState,0)
@@ -49,7 +51,8 @@ control.prototype={
   },
 
 	setControlAmps(device, controlService, value, callback){
-		let amps=Math.round(value*1.8+32)
+		//let amps=Math.round(value*1.8+32)
+		let amps=(value*1.8+32).toFixed(2)
 		this.log.debug('set amps',value, amps)
 		this.wallboxapi.setAmps(this.platform.token,device.id,amps).then(response=>{
 			this.log.debug(response.data)
@@ -60,7 +63,7 @@ control.prototype={
 
 	setControlState(device, controlService, value, callback){
 		this.wallboxapi.getChargerData(this.platform.token,device.id).then(state=>{
-			this.log.debug('check current state %s:%s',state.data.data.chargerData.status,state.data.data.chargerData.statusDescription)
+			this.log.warn('check current state %s:%s',state.data.data.chargerData.status,state.data.data.chargerData.statusDescription)
 			if(state.data.data.chargerData.status==(161 || 181 || 194 || 209)){
 			//if(state.data.data.chargerData.statusDescription==("Ready" || "Charging" || "Connected: waiting for car demand" || "Locked")){
 				this.log.debug('toggle switch state %s',controlService.getCharacteristic(Characteristic.Name).value)
@@ -144,7 +147,7 @@ control.prototype={
 			let currentValue=controlService.getCharacteristic(Characteristic.TargetTemperature).value
 			this.log.debug('get amps', currentValue)
 			//let currentAmps=Math.round(currentValue*1.8+32)
-			if(currentValue>4.5){currentValue=4.5}
+			if(currentValue>4.5){currentValue=4.44444}
 			callback(null, currentValue)
 		}
 	} 

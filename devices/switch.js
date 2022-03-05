@@ -11,7 +11,7 @@ basicSwitch.prototype={
 
   createSwitchService(device, type){
     this.log.debug('adding new switch')
-		let switchService=new Service.Switch(type, type)
+		let switchService=new Service.Switch(type, device.id)
 		let switchOn=false
 		if(device.statusDescription=="Charging"){switchOn=true}
     switchService 

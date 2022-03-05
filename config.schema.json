@@ -35,8 +35,45 @@
 				"required": true,
 				"default": 60
 			},
+			"cars": {
+        "title": "Cars",
+        "type": "array",
+        "required": true,
+        "items": {
+          "title": "Car Info",
+          "type": "object",
+          "properties": {
+						"carName": {
+              "title": "Name of your Car",
+              "type": "string",
+              "minLength": 3,
+              "required": false,
+							"placeholder": "My EV"
+            },
+            "chargerName": {
+              "title": "Name of your Charger used for this car, reference the logging for exact names",
+              "type": "string",
+              "minLength": 3,
+              "required": false,
+							"placeholder": "Wallbox"
+            },
+            "kwH": {
+              "title": "Battery Size in kwH for this car",
+              "type": "integer",
+							"required": false,
+							"placeholder": 78
+						}
+					}
+				}
+			},
+			"locationAddress": {
+        "title": "Street Address",
+        "type": "string",
+        "required": false,
+        "placeholder": "Leave blank for all locations"
+      },
 			"showControls": {
-				"title": "Expose Control for Amps and Start/Stop Charging",
+				"title": "Expose Controls for Amps and Start/Stop Charging",
 				"type": "boolean",
 				"required": true,
 				"default": false
@@ -73,6 +110,20 @@
 			"items": [
 				"refreshRate"
 			]
+		},
+		{
+      "type": "help",
+      "helpvalue": "<h6><b>Charging Estimate</b></h6><p class='help-block'> The plugin will attempt to calulate in real time the percent charge added based on these values for each car.<br/></p>"
+    },
+		{
+			"key": "cars",
+			"type": "tabarray",
+			"title": "{{ value.carName || 'new Car' }}",
+			"items": [
+				"cars[].carName",
+				"cars[].chargerName",
+				"cars[].kwH"
+					]			
 		},
 		{
 			"type": "flex",
