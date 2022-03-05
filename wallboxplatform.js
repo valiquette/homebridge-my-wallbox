@@ -75,7 +75,8 @@ class wallboxPlatform {
 							this.log.info('Found account for %s %s', user.data.data.name, user.data.data.surname)				
 							user.data.data.accessConfigs.filter((accessConfig)=>{
 								groups.data.result.groups.forEach((group)=>{
-								if(!this.locationName || this.locationName==group.name){
+								if(!this.locationName || (this.locationName==group.name && accessConfig.group==group.id)){
+								//if(!this.locationName || this.locationName==group.name){	
 									this.log.info('Device found at the location: %s',group.name)
 									this.locationMatch=true
 								}	

@@ -117,7 +117,6 @@ control.prototype={
 		}
 		else{
 			let currentValue=controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value
-			this.log.debug('get state',currentValue)
 			callback(null, currentValue)
 		}
 	}, 
@@ -128,7 +127,6 @@ control.prototype={
 		}
 		else{
 			let currentValue=controlService.getCharacteristic(Characteristic.TargetTemperature).value
-			this.log.debug('get amps', currentValue)
 			//let currentAmps=Math.round(currentValue*1.8+32)
 			if(currentValue>4.5){currentValue=4.44444}
 			callback(null, currentValue)

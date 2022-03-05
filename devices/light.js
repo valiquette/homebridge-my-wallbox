@@ -131,7 +131,6 @@ light.prototype={
 		}
 		else{
 			let currentValue=lightService.getCharacteristic(Characteristic.On).value
-			this.log.debug('get state',currentValue)
 			callback(null, currentValue)
 		}
 	}, 
@@ -142,7 +141,6 @@ light.prototype={
 		}
 		else{
 			let currentValue=lightService.getCharacteristic(Characteristic.Brightness).value
-			this.log.debug('get amps', currentValue)
 			callback(null, currentValue)
 		}
 	} 
