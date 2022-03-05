@@ -3,6 +3,7 @@ let wallboxAPI=require('./wallboxapi')
 let lockMechanism=require('./devices/lock')
 let battery=require('./devices/battery')
 let basicSwitch=require('./devices/switch')
+let light=require('./devices/light')
 let control=require('./devices/control')
 
 class wallboxPlatform {
@@ -12,6 +13,7 @@ class wallboxPlatform {
 		this.lockMechanism=new lockMechanism(this, log)
 		this.battery=new battery(this, log)
 		this.basicSwitch=new basicSwitch(this, log, config)
+		this.light=new light(this, log, config)
 		this.control=new control(this, log, config)
 
     this.log=log
@@ -20,14 +22,13 @@ class wallboxPlatform {
     this.password=config.password
     this.token
 		this.refreshRate=config.refreshRate||30
-		this.showStartStop=config.showStartStop||false
 		this.showControls=config.showControls
 		this.id
     this.userId
 		this.cars=config.cars
 		this.voltage=240
 		this.amperage=40
-		this.locationAddress=config.locationAddress
+		this.locationName=config.locationName
 		this.locationMatch
 		this.accessories=[]
 		this.amps=[]
@@ -56,62 +57,84 @@ class wallboxPlatform {
     this.wallboxapi.checkEmail(this.email).then(response=>{
       this.log.info('Email status %s',response.data.data.attributes.status)
 			
-			this.wallboxapi.signin(this.email,this.password).then(response=>{
-				this.log.debug('Found User ID %s',response.data.data.attributes.user_id)
-				this.log.debug('Found Token %s',response.data.data.attributes.token)
-				this.id=response.data.data.attributes.user_id 
-				this.token=response.data.data.attributes.token 
-				this.setTokenRefresh(response.data.data.attributes.ttl)
+			this.wallboxapi.signin(this.email,this.password).then(signin=>{
+				this.log.debug('Found User ID %s',signin.data.data.attributes.user_id)
+				this.log.debug('Found Token %s',signin.data.data.attributes.token)
+				this.id=signin.data.data.attributes.user_id 
+				this.token=signin.data.data.attributes.token 
+				this.setTokenRefresh(signin.data.data.attributes.ttl)
 				//get token
-				this.wallboxapi.getId(this.token,this.id).then(response=>{
-					this.log.debug('Found User ID %s',response.data.data.attributes.value)
-					this.userId=response.data.data.attributes.value
-					//get user id
-					this.wallboxapi.getUser(this.token,this.userId).then(response=>{
-						this.log.info('Found account for %s %s', response.data.data.name, response.data.data.surname)	
-						response.data.data.accessConfigs.forEach((accessConfig)=>{
-							accessConfig.chargers.forEach((charger)=>{
-								//loop each charger
-								this.wallboxapi.getChargerData(this.token,charger).then(response=>{
-									let chargerData=response.data.data.chargerData
-									let uuid=UUIDGen.generate(chargerData.uid)							
-									if(this.accessories[uuid]){
-										this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
-										delete this.accessories[uuid]
-									}
-									this.log.info('Adding Lock for %s charger ', chargerData.name)
-									this.log.debug('Registering platform accessory')
+				this.wallboxapi.getId(this.token,this.id).then(userId=>{
+					this.log.debug('Found User ID %s',userId.data.data.attributes.value)
+					this.userId=userId.data.data.attributes.value
+					//get groups
+					this.wallboxapi.getChargerGroups(this.token).then(groups=>{
+						this.log.debug('Found groups for %s ', groups.data.result.groups[0].name)
+						//get user
+						this.wallboxapi.getUser(this.token,this.userId).then(user=>{
+							this.log.info('Found account for %s %s', user.data.data.name, user.data.data.surname)				
+							user.data.data.accessConfigs.filter((accessConfig)=>{
+								groups.data.result.groups.forEach((group)=>{
+								if(!this.locationName || this.locationName==group.name){
+									this.log.info('Device found at the location: %s',group.name)
+									this.locationMatch=true
+								}	
+								else{
+									this.log.info('Skipping device at %s, not found at the configured location: %s',group.name,this.locationName)
+									this.locationMatch=false
+								}
+								})
+								return this.locationMatch
+							}).forEach((accessConfig)=>{
+								accessConfig.chargers.forEach((charger)=>{
+									//loop each charger
+									this.wallboxapi.getChargerData(this.token,charger).then(response=>{
+										let chargerData=response.data.data.chargerData
+										let uuid=UUIDGen.generate(chargerData.uid)							
+										if(this.accessories[uuid]){
+											this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
+											delete this.accessories[uuid]
+										}
+										this.log.info('Adding Lock for %s charger ', chargerData.name)
+										this.log.debug('Registering platform accessory')
 
-									let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
-									let lockService=this.lockMechanism.createLockService(chargerData)
-									this.lockMechanism.configureLockService(lockService,chargerData.locked)
-									lockAccessory.addService(lockService)
-									
-									let batteryService=this.battery.createBatteryService(chargerData)
-									this.battery.configureBatteryService(batteryService)
-									lockAccessory.getService(Service.LockMechanism).addLinkedService(batteryService)
-									lockAccessory.addService(batteryService)
-									this.amps[batteryService.subtype]=chargerData.maxChgCurrent
+										let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
+										let lockService=this.lockMechanism.createLockService(chargerData)
+										this.lockMechanism.configureLockService(lockService,chargerData.locked)
+										lockAccessory.addService(lockService)
+										
+										let batteryService=this.battery.createBatteryService(chargerData)
+										this.battery.configureBatteryService(batteryService)
+										lockAccessory.getService(Service.LockMechanism).addLinkedService(batteryService)
+										lockAccessory.addService(batteryService)
+										this.amps[batteryService.subtype]=chargerData.maxChgCurrent
 
-									if(this.showControls){
-										let controlService=this.control.createControlService(chargerData,'Amps')
-										this.control.configureControlService(chargerData, controlService)
-										lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
-										lockAccessory.addService(controlService)
-									}
-									if(this.showStartStop){
-										let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
-										this.basicSwitch.configureSwitchService(chargerData, switchService)
-										lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
-										lockAccessory.addService(switchService)
-									}
-									this.accessories[uuid]=lockAccessory                     
-									this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
-									this.setChargerRefresh(chargerData.id)
-									this.updateStatus(chargerData)
-								}).catch(err=>{this.log.error('Failed to get info for build', err)})
+										if(this.showControls==3 || 4){
+											let controlService=this.control.createControlService(chargerData,'Amps')
+											this.control.configureControlService(chargerData, controlService)
+											lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
+											lockAccessory.addService(controlService)
+										}
+										if(this.showAmps==2 || 4){
+											let lightService=this.light.createLightService(chargerData,'Start/Stop & Amps')
+											this.light.configureLightService(chargerData, lightService)
+											lockAccessory.getService(Service.LockMechanism).addLinkedService(lightService)
+											lockAccessory.addService(lightService)
+										}
+										if(this.showStartStop==1 || 4){
+											let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
+											this.basicSwitch.configureSwitchService(chargerData, switchService)
+											lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
+											lockAccessory.addService(switchService)
+										}
+										this.accessories[uuid]=lockAccessory                     
+										this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
+										this.setChargerRefresh(chargerData.id)
+										this.updateStatus(chargerData)
+									}).catch(err=>{this.log.error('Failed to get info for build', err)})
+								})
 							})
-						})
+						}).catch(err=>{this.log.error('Failed to get info for build', err)})
 					}).catch(err=>{this.log.error('Failed to get info for build', err)})
 				}).catch(err=>{this.log.error('Failed to get info for build', err)})
     	}).catch(err=>{this.log.error('Failed to get info for build', err)})
@@ -184,12 +207,16 @@ class wallboxPlatform {
 		updateStatus(chargerData){
 			let uuid=UUIDGen.generate(chargerData.uid)	
 			let lockAccessory=this.accessories[uuid]
-			let controlService			
+			let controlService	
+			let lightService
+			let switchService		
 			let lockService
 			let batteryService
-			controlService=lockAccessory.getServiceById(Service.Thermostat, chargerData.id)	
 			lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerData.id)	
 			batteryService=lockAccessory.getServiceById(Service.Battery, chargerData.id)	
+			if(this.showControls){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerData.id)}
+			if(this.showAmps){lightService=lockAccessory.getServiceById(Service.Light, chargerData.id)}
+			if(this.showStartStop){switchService=lockAccessory.getServiceById(Service.Switch, chargerData.id)}		
 			/*
 			staus to statusDescription
 			161: "Ready"

@@ -66,17 +66,36 @@
 					}
 				}
 			},
-			"locationAddress": {
-        "title": "Street Address",
+			"locationName": {
+        "title": "Location Name",
         "type": "string",
         "required": false,
         "placeholder": "Leave blank for all locations"
       },
 			"showControls": {
-				"title": "Expose Controls for Amps and Start/Stop Charging",
-				"type": "boolean",
+				"title": "Show Charger Controls",
+				"type": "integer",
 				"required": true,
-				"default": false
+				"default": 0,
+				"description": "Select the control type to display in Homkit.",
+				"oneOf": [
+					{
+						"title": "None",
+						"enum": [0]
+					},
+					{
+						"title": "Simple Start/Stop",
+						"enum": [1]
+					},
+					{
+						"title": "Start/Stop with Amperage Adjustments",
+						"enum": [2]
+					},
+					{
+						"title": "Full Control in the form of a Thermostat",
+						"enum": [3]
+					}
+				]
 			}
 		}
 	},
@@ -111,6 +130,17 @@
 				"refreshRate"
 			]
 		},
+		{
+      "type": "help",
+      "helpvalue": "<h6><b>Location Support</b></h6><p class='help-block'> If you have more than one location and want to display them in separate Homebridge/HomeKit homes you can retrive only the devices at this loction name otherwise leave blank.<br/>The location must match the location configured in the Wallbox app, review the log file to see the adresses as configured in the Easee app.</p>"
+    },
+    {
+      "type": "flex",
+      "flex-flow": "row wrap",
+      "items": [
+        "locationName"
+      ]
+    },
 		{
       "type": "help",
       "helpvalue": "<h6><b>Charging Estimate</b></h6><p class='help-block'> The plugin will attempt to calulate in real time the percent charge added based on these values for each car.<br/></p>"

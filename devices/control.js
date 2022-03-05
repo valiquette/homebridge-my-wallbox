@@ -57,14 +57,13 @@ control.prototype={
 		this.wallboxapi.setAmps(this.platform.token,device.id,amps).then(response=>{
 			this.log.debug(response.data)
 		})	
-
 		callback()
 		},
 
 	setControlState(device, controlService, value, callback){
 		this.wallboxapi.getChargerData(this.platform.token,device.id).then(state=>{
 			this.log.warn('check current state %s:%s',state.data.data.chargerData.status,state.data.data.chargerData.statusDescription)
-			if(state.data.data.chargerData.status==(161 || 181 || 194 || 209)){
+			if(state.data.data.chargerData.status==( 181 || 194 || 209)){
 			//if(state.data.data.chargerData.statusDescription==("Ready" || "Charging" || "Connected: waiting for car demand" || "Locked")){
 				this.log.debug('toggle switch state %s',controlService.getCharacteristic(Characteristic.Name).value)
 				if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
@@ -77,19 +76,11 @@ control.prototype={
 								case 200:
 									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
 									break
-								case 202:
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
-									break	
-								case 400:
+								default:
 									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
 									this.log.info('Failed to start charging %s',response.data.title)
 									this.log.debug(response.data)
 									break
-								default:
-									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
-									this.log.debug(response.data)
-									break	
 								}
 						})	
 					} 
@@ -99,31 +90,23 @@ control.prototype={
 								case 200:
 									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
 									break
-								case 202:
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
-									break	
-								case 403:
+								default:
 									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
 									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
 									this.log.info('Failed to stop charging %s',response.data.title)
 									this.log.debug(response.data)
 									break
-								default:
-									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
-									this.log.debug(response.data)
-									break	
 								}
 						})	
 					}
-					callback()
+					callback(value)
 				} 
 			}
 			else{
 				this.log.info('Unable to start at this time')
-				controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(false)
-				controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
-				callback()
+				controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
+				controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
+				callback(value)
 			}	
 		})
 	},
