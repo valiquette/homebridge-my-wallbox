@@ -27,13 +27,13 @@
 				"required": true
 			},
 			"refreshRate": {
-				"title": "Refresh Rate Minutes",
-				"description": "Polling time in minutes.",
+				"title": "Refresh Rate",
+				"description": "Polling time in minutes to refresh data.",
 				"type": "integer",
 				"minimum": 5,
-				"maximum": 1440,
+				"maximum": 60,
 				"required": true,
-				"default": 60
+				"default": 30
 			},
 			"cars": {
         "title": "Cars",

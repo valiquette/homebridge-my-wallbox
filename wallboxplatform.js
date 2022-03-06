@@ -110,19 +110,19 @@ class wallboxPlatform {
 										lockAccessory.addService(batteryService)
 										this.amps[batteryService.subtype]=chargerData.maxChgCurrent
 
-										if(this.showControls==3 || this.showControls==4){
+										if(this.showControls==3 || 4){
 											let controlService=this.control.createControlService(chargerData,'Amps')
 											this.control.configureControlService(chargerData, controlService)
 											lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
 											lockAccessory.addService(controlService)
 										}
-										if(this.showAmps==2 || this.showControls==4){
+										if(this.showControls==2 || 4){
 											let lightService=this.light.createLightService(chargerData,'Start/Stop & Amps')
 											this.light.configureLightService(chargerData, lightService)
 											lockAccessory.getService(Service.LockMechanism).addLinkedService(lightService)
 											lockAccessory.addService(lightService)
 										}
-										if(this.showStartStop==1 || this.showControls==4){
+										if(this.showControls==1 || 4){
 											let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
 											this.basicSwitch.configureSwitchService(chargerData, switchService)
 											lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
@@ -131,7 +131,7 @@ class wallboxPlatform {
 										this.accessories[uuid]=lockAccessory                     
 										this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
 										this.setChargerRefresh(chargerData.id)
-										this.updateStatus(chargerData)
+										this.updateStatus(chargerData.id)
 									}).catch(err=>{this.log.error('Failed to get info for build', err)})
 								})
 							})
@@ -164,13 +164,7 @@ class wallboxPlatform {
 		setChargerRefresh(id){
 			// Refresh charger status
 				setInterval(()=>{		
-					try{		
-						this.wallboxapi.getChargerData(this.token,id).then(response=>{
-							let chargerData=response.data.data.chargerData
-							this.log.debug('refreshed charger %s',chargerData.id)
-							this.updateStatus(chargerData)
-						}).catch(err=>{this.log.error('Failed signin to refresh charger', err)})
-					}catch(err){this.log.error('Failed to refresh charger', err)}	
+					this.updateStatus(id)
 				}, this.refreshRate*60*1000)
 			}
 
@@ -205,92 +199,114 @@ class wallboxPlatform {
 				this.endTime[batteryService.subtype]=endTime
 			}	
 
-		updateStatus(chargerData){
-			let uuid=UUIDGen.generate(chargerData.uid)	
-			let lockAccessory=this.accessories[uuid]
-			let controlService	
-			let lightService
-			let switchService		
-			let lockService
-			let batteryService
-			lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerData.id)	
-			batteryService=lockAccessory.getServiceById(Service.Battery, chargerData.id)	
-			if(this.showControls){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerData.id)}
-			if(this.showAmps){lightService=lockAccessory.getServiceById(Service.Light, chargerData.id)}
-			if(this.showStartStop){switchService=lockAccessory.getServiceById(Service.Switch, chargerData.id)}		
-			/*
-			staus to statusDescription
-			161: "Ready"
-			194: "Charging"
-			181: "Connected: waiting for car demand"
-			209: "Locked"
-			4: "Complete"
-			5: "Offline"
-			*/
-			let stateOfCharge=0
-			if(chargerData.stateOfCharge){stateOfCharge=chargerData.stateOfCharge}
-			this.log.info('Charger status %s',chargerData.statusDescription)
-			switch(chargerData.statusDescription){
-				case 'Ready':
-					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
-					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
-					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
-					this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", false, chargerData.locked, false )
-					break
-				case 'Charging':
-					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
-					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(true)
-					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
-					this.calcBattery(batteryService)
-					this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, true )
-					break	
-				case 'Connected: waiting for car demand':
-					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
-					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
-					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
-					//this.calcBattery(batteryService)
-					clearInterval(this.endTime[batteryService.subtype])
-					this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, false )
-					break	
-				case 'Locked':
-					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
-					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
-					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
-					this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", false, chargerData.locked, false )
-					break
-				case 'Complete':
-					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-					lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
-					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
-					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
-					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
-					batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
-					batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(stateOfCharge)
-					this.log.info('%s completed at %s',chargerData.name, new Date().toLocaleString())
-					this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, false )
-					break
-				case 'Offline':
-					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.GENERAL_FAULT)
-					this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection*1000).toLocaleString())
-					break
-				default:
-					this.log.warn('Unknown device message received: %s',chargerData.statusDescription)
-					break	
-			}
-
+		async updateStatus(id){
+			try{
+				let status=this.wallboxapi.getChargerData(this.token,id).then(response=>{
+					let chargerData=response.data.data.chargerData
+					this.log.debug('refreshed charger %s',chargerData.id)
+					let uuid=UUIDGen.generate(chargerData.uid)	
+					let lockAccessory=this.accessories[uuid]
+					let controlService	
+					let lightService
+					let switchService		
+					let lockService
+					let batteryService
+					lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerData.id)	
+					batteryService=lockAccessory.getServiceById(Service.Battery, chargerData.id)	
+					if(this.showControls==3 || 4){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerData.id)}
+					if(this.showControls==2 || 4){lightService=lockAccessory.getServiceById(Service.Lightbulb, chargerData.id)}
+					if(this.showControls==1 || 4){switchService=lockAccessory.getServiceById(Service.Switch, chargerData.id)}		
+					/*
+					staus to statusDescription
+					161: "Ready"
+					194: "Charging"
+					181: "Connected: waiting for car demand"
+					209: "Locked"
+					4: "Complete"
+					5: "Offline"
+					*/
+					let stateOfCharge=0
+					if(chargerData.stateOfCharge){stateOfCharge=chargerData.stateOfCharge}
+					this.log.debug('Charger status %s',chargerData.statusDescription)
+					switch(chargerData.statusDescription){
+						case 'Ready':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
+							if(this.showControls==3 || 4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
+							if(this.showControls==2 || 4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+							if(this.showControls==1 || 4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
+							batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
+							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", false, chargerData.locked, false )
+							break
+						case 'Charging':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
+							if(this.showControls==3 || 4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(true)}
+							if(this.showControls==2 || 4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
+							if(this.showControls==1 || 4){switchService.getCharacteristic(Characteristic.On).updateValue(true)}
+							batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
+							this.calcBattery(batteryService)
+							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, true )
+							break	
+						case 'Connected: waiting for car demand':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
+							controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+							if(this.showControls==3 || 4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
+							if(this.showControls==2 || 4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+							if(this.showControls==1 || 4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
+							batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
+							//this.calcBattery(batteryService)
+							clearInterval(this.endTime[batteryService.subtype])
+							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, false )
+							break	
+						case 'Locked':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
+							if(this.showControls==3 || 4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
+							if(this.showControls==2 || 4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+							if(this.showControls==1 || 4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
+							batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
+							this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", false, chargerData.locked, false )
+							break
+						case 'Complete':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
+							if(this.showControls==3 || 4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
+							if(this.showControls==2 || 4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+							if(this.showControls==1 || 4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
+							batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
+							batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(stateOfCharge)
+							this.log.info('%s completed at %s',chargerData.name, new Date().toLocaleString())
+							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, false )
+							break
+						case 'Offline':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.GENERAL_FAULT)
+							this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection*1000).toLocaleString())
+							break
+						default:
+							this.log.warn('Unknown device message received: %s',chargerData.statusDescription)
+							break	
+					}		
+					return chargerData
+				}).then(chargerData=>{
+					this.log.debug('returned current state = %s',chargerData.status)
+					return chargerData.status
+				})
+				return status
+			}catch(err) {this.log.error('Error updating status %s', err)}
 		}	
+
   //**
   //** REQUIRED - Homebridge will call the "configureAccessory" method once for every cached accessory restored
   //**

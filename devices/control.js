@@ -61,10 +61,9 @@ control.prototype={
 		},
 
 	setControlState(device, controlService, value, callback){
-		this.wallboxapi.getChargerData(this.platform.token,device.id).then(state=>{
-			this.log.warn('check current state %s:%s',state.data.data.chargerData.status,state.data.data.chargerData.statusDescription)
-			if(state.data.data.chargerData.status==( 181 || 194 || 209)){
-			//if(state.data.data.chargerData.statusDescription==("Ready" || "Charging" || "Connected: waiting for car demand" || "Locked")){
+		this.platform.updateStatus(device.id).then(state=>{
+			this.log.debug('check state %s',state)
+			if(state==( 181 || 194 || 209)){
 				this.log.debug('toggle switch state %s',controlService.getCharacteristic(Characteristic.Name).value)
 				if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 					callback('error')
