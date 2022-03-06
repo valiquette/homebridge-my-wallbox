@@ -26,7 +26,7 @@ lockMechanism.prototype={
 
   createLockService(device){
     this.log.debug("create Lock service for %s, serial number %s",device.name, device.serialNumber )
-		let lockService=new Service.LockMechanism(device.name,device.id)
+		let lockService=new Service.LockMechanism(device.name, device.id)
 		lockService
 			.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
 			.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)

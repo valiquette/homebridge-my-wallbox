@@ -1,7 +1,7 @@
 let axios = require('axios')
 
-let userEndpoint = 'https://user-api.wall-box.com/users/'
-let endpoint = 'https://api.wall-box.com/'
+let userEndpoint = 'https://user-api.wall-box.com/users'
+let endpoint = 'https://api.wall-box.com'
 
 function wallboxAPI (platform,log){
 	this.log=log
@@ -15,7 +15,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving device')
 			let response = await axios({
 					method: 'get',
-					url: userEndpoint+'emails/'+email,
+					url: `${userEndpoint}/emails/${email}`,
 					headers: {
 						'Content-Type': 'application/json',
 					},
@@ -32,7 +32,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving token')
 			let response = await axios({
 					method: 'get',
-					url: userEndpoint + 'signin',
+					url: `${userEndpoint}/signin`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Basic '+b64encoded,
@@ -52,7 +52,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving User ID')
 			let response = await axios({
 					method: 'get',
-					url: endpoint+'v4/users/'+id+'/id',
+					url: `${endpoint}/v4/users/${id}/id`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -65,62 +65,80 @@ wallboxAPI.prototype={
 	},
 
 	getUser: async function(token,userId){
-			try {  
-					this.log.debug('Retrieving user info')
-					let response = await axios({
-							method: 'get',
-							url: endpoint+'v2/user/'+userId,
-							headers: {
-								'Content-Type': 'application/json',
-								'Authorization': 'Bearer '+token
-							},
-							responseType: 'json'
-					}).catch(err=>{this.log.error('Error getting user ID %s', JSON.stringify(err.config,null,2))})
-					if(response){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
-					return response
-				}catch(err) {this.log.error('Error retrieving user ID %s', err)}
-			},
+		try {  
+			this.log.debug('Retrieving user info')
+			let response = await axios({
+					method: 'get',
+					url: `${endpoint}/v2/user/${userId}`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					responseType: 'json'
+			}).catch(err=>{this.log.error('Error getting user ID %s', JSON.stringify(err.config,null,2))})
+			if(response){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
+			return response
+		}catch(err) {this.log.error('Error retrieving user ID %s', err)}
+	},
 
-	getChargerData: async function(token,id){
+	getChargerGroups: async function(token){
 		try {  
-				this.log.debug('Retrieving charger info')
-				let response = await axios({
-						method: 'get',
-						url: endpoint+'v2/charger/'+id,
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': 'Bearer '+token
-						},
-						responseType: 'json'
-				}).catch(err=>{this.log.error('Error getting charger %s', JSON.stringify(err.config,null,2))})
-				if(response){this.log.debug('get charger data response',JSON.stringify(response.data,null,2))}
-				return response
-			}catch(err) {this.log.error('Error retrieving charger %s', err)}
-		},
+			this.log.debug('Retrieving charger groups')
+			let response = await axios({
+					method: 'get',
+					url: `${endpoint}/v3/chargers/groups`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					responseType: 'json'
+			}).catch(err=>{this.log.error('Error getting charger groups %s', JSON.stringify(err.config,null,2))})
+			if(response){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
+			return response
+		}catch(err) {this.log.error('Error retrieving charger groups %s', err)}
+	},
 	
-	getChargerConfig: async function(token,id){
+
+	getChargerData: async function(token,chargerId){
 		try {  
-				this.log.debug('Retrieving charger config')
-				let response = await axios({
-						method: 'get',
-						url: endpoint+'chargers/config/'+id,
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': 'Bearer '+token
-						},
-						responseType: 'json'
-				}).catch(err=>{this.log.error('Error getting charger config %s', JSON.stringify(err.config,null,2))})
-				if(response){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
-				return response
-			}catch(err) {this.log.error('Error retrieving charger config %s', err)}
-		},
+			this.log.debug('Retrieving charger info')
+			let response = await axios({
+					method: 'get',
+					url: `${endpoint}/v2/charger/${chargerId}`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					responseType: 'json'
+			}).catch(err=>{this.log.error('Error getting charger %s', JSON.stringify(err.config,null,2))})
+			if(response){this.log.debug('get charger data response',JSON.stringify(response.data,null,2))}
+			return response
+		}catch(err) {this.log.error('Error retrieving charger %s', err)}
+	},
+	
+	getChargerConfig: async function(token,chargerId){
+		try {  
+			this.log.debug('Retrieving charger config')
+			let response = await axios({
+					method: 'get',
+					url: `${endpoint}/chargers/config/${chargerId}`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					responseType: 'json'
+			}).catch(err=>{this.log.error('Error getting charger config %s', JSON.stringify(err.config,null,2))})
+			if(response){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
+			return response
+		}catch(err) {this.log.error('Error retrieving charger config %s', err)}
+	},
 
 	lock: async function(token,chargerId,value){
 		try {  
 			this.log.debug('Setting charger lock state for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
-					url: endpoint+'v2/charger/'+chargerId,
+					url: `${endpoint}/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -140,7 +158,7 @@ wallboxAPI.prototype={
 			this.log.debug('Setting amperage for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
-					url: endpoint+'v2/charger/'+chargerId,
+					url: `${endpoint}/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -169,7 +187,7 @@ wallboxAPI.prototype={
 			}
 			let response = await axios({
 					method: 'post',
-					url: endpoint+'v3/chargers/'+chargerId+'/remote-action',
+					url: `${endpoint}/v3/chargers/${chargerId}/remote-action`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token

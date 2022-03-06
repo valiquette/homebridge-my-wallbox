@@ -11,7 +11,7 @@ basicSwitch.prototype={
 
   createSwitchService(device, type){
     this.log.debug('adding new switch')
-		let switchService=new Service.Switch(type, type)
+		let switchService=new Service.Switch(type, device.id)
 		let switchOn=false
 		if(device.statusDescription=="Charging"){switchOn=true}
     switchService 
@@ -29,10 +29,9 @@ basicSwitch.prototype={
       .on('set', this.setSwitchValue.bind(this, device, switchService))
   },
   setSwitchValue(device, switchService, value, callback){
-		this.wallboxapi.getChargerData(this.platform.token,device.id).then(state=>{
-			this.log.debug('check current state %s:%s',state.data.data.chargerData.status,state.data.data.chargerData.statusDescription)
-			if(state.data.data.chargerData.status==(161 || 181 || 194 || 209)){
-			//if(state.data.data.chargerData.statusDescription==("Ready" || "Charging" || "Connected: waiting for car demand" || "Locked")){
+		this.platform.updateStatus(device.id).then(state=>{
+			this.log.debug('check state %s',state)
+			if(state==( 181 || 194 || 209)){
 				this.log.debug('toggle switch state %s',switchService.getCharacteristic(Characteristic.Name).value)
 				if(switchService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 					callback('error')
@@ -44,18 +43,11 @@ basicSwitch.prototype={
 								case 200:
 									switchService.getCharacteristic(Characteristic.On).updateValue(value)
 									break
-								case 202:
-									switchService.getCharacteristic(Characteristic.On).updateValue(value)
-									break	
-								case 400:
+								default:
 									switchService.getCharacteristic(Characteristic.On).updateValue(!value)
 									this.log.info('Failed to start charging %s',response.data.title)
 									this.log.debug(response.data)
 									break
-								default:
-									switchService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.debug(response.data)
-									break	
 								}
 						})	
 					} 
@@ -65,28 +57,21 @@ basicSwitch.prototype={
 								case 200:
 									switchService.getCharacteristic(Characteristic.On).updateValue(value)
 									break
-								case 202:
-									switchService.getCharacteristic(Characteristic.On).updateValue(value)
-									break	
-								case 403:
+								default:
 									switchService.getCharacteristic(Characteristic.On).updateValue(!value)
 									this.log.info('Failed to stop charging %s',response.data.title)
 									this.log.debug(response.data)
 									break
-								default:
-									switchService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.debug(response.data)
-									break	
 								}
 						})	
 					}
-					callback()
+					callback(value)
 				} 
 			}
 			else{
-				this.log.info('Unable to start at this time')
+				this.log.info('Unable to start/stop at this time')
 				switchService.getCharacteristic(Characteristic.On).updateValue(!value)
-				callback()
+				callback(value)
 			}	
 		})
   },

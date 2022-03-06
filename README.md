@@ -31,7 +31,16 @@ Other hardware models/types may still work with this plugin and any feedback on 
 		"name": "Wallbox",
 		"email": "username@email.com",
 		"password": "password",
-		"rate": 60,
+		"refreshRate": 30,
+			"cars": [
+				{
+					"carName": "My EV",
+					"chargerName": "Wallbox",
+					"kwH": 78
+				}
+			],
+			"locationAddress": "123 Easy St",
+			"showControls": 4,
 		"_bridge": {
 			"username": "0E:6C:D4:F2:16:EB",
 			"port": 35919
