@@ -110,19 +110,19 @@ class wallboxPlatform {
 										lockAccessory.addService(batteryService)
 										this.amps[batteryService.subtype]=chargerData.maxChgCurrent
 
-										if(this.showControls==3 || 4){
+										if(this.showControls==3 || this.showControls==4){
 											let controlService=this.control.createControlService(chargerData,'Amps')
 											this.control.configureControlService(chargerData, controlService)
 											lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
 											lockAccessory.addService(controlService)
 										}
-										if(this.showAmps==2 || 4){
+										if(this.showAmps==2 || this.showControls==4){
 											let lightService=this.light.createLightService(chargerData,'Start/Stop & Amps')
 											this.light.configureLightService(chargerData, lightService)
 											lockAccessory.getService(Service.LockMechanism).addLinkedService(lightService)
 											lockAccessory.addService(lightService)
 										}
-										if(this.showStartStop==1 || 4){
+										if(this.showStartStop==1 || this.showControls==4){
 											let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
 											this.basicSwitch.configureSwitchService(chargerData, switchService)
 											lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
