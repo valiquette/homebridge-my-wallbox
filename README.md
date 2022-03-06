@@ -9,8 +9,7 @@
 ## About
 
 <br> Supports the ablity to lock and unlock charger from HomeKit
-
-## Notes on testing
+<br> If you have more than one home on account you may filter chargers for a home based on the location name assigned in the Wallbox app for the location you want to display in HomeKit.
 
 This plugin has been tested or verified against hardware model/types
 - Wallbox Pulsar
