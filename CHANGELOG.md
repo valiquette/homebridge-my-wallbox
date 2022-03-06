@@ -6,6 +6,8 @@ Update
 - Estimate battery charge added.
 - Added support for Start/Stop and Amps 
 - Added location support
+- Code cleanup 
+- Fix bug with "waiting' message
 
 ## 1.0.5
 Update
