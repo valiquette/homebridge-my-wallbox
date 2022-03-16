@@ -1,6 +1,10 @@
 # Changes
 
 
+## 1.0.7
+Update 
+-	Tied battery service option to having a car defined
+
 ## 1.0.6
 Update
 - Estimate battery charge added.

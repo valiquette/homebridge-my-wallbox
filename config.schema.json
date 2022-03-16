@@ -143,7 +143,7 @@
     },
 		{
       "type": "help",
-      "helpvalue": "<h6><b>Charging Estimate</b></h6><p class='help-block'> The plugin will attempt to calulate in real time the percent charge added based on these values for each car.<br/></p>"
+			"helpvalue": "<h6><b>Charging Estimate</b></h6><p class='help-block'> The plugin will attempt to calulate in real time the percent charge added based on these values for each car. If no car is added then the display of a battery service will be supressed.<br/></p>"
     },
 		{
 			"key": "cars",
