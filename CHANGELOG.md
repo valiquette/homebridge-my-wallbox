@@ -1,5 +1,10 @@
 # Changes
 
+## 1.0.8
+Update 
+-	Code cleanup
+- bummped dependencies
+- corrected benign unknown device warning message.
 
 ## 1.0.7
 Update 
