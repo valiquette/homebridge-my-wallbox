@@ -3,13 +3,13 @@
 ## 1.0.9
 Update 
 -	Code cleanup
-- bummped dependencies
+- bumped dependencies
 - corrected benign unknown device warning message.
 
 ## 1.0.8 -beta
 Update 
 -	Code cleanup
-- bummped dependencies
+- bumped dependencies
 - corrected benign unknown device warning message.
 
 ## 1.0.7
