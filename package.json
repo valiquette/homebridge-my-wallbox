@@ -1,6 +1,6 @@
 {
   "name": "homebridge-my-wallbox",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Wallbox Charger platform plugin for [HomeBridge](https://github.com/nfarina/homebridge).",
   "main": "index.js",
   "dependencies": {
