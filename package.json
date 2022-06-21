@@ -1,6 +1,6 @@
 {
   "name": "homebridge-my-wallbox",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Wallbox Charger platform plugin for [HomeBridge](https://github.com/nfarina/homebridge).",
   "main": "index.js",
   "dependencies": {
@@ -8,7 +8,7 @@
   },
   "engines": {
     "homebridge": "^1.4.1",
-    "node": "^14.18.0 || ^16.15.0 || ^18.2.0"
+    "node": "^14.18.0 || ^16.15.0 || ^18.4.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

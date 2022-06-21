@@ -255,7 +255,6 @@ class wallboxPlatform {
 							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
 							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
 							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
-							controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
 							if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
 							if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 							if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}

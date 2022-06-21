@@ -1,5 +1,9 @@
 # Changes
 
+## 1.0.10
+Fix
+-	Fix bug preventing sucessfule start whit default settings.
+
 ## 1.0.9
 Update 
 -	Code cleanup
