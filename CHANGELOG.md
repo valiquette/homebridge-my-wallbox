@@ -2,7 +2,7 @@
 
 ## 1.0.10
 Fix
--	Fix bug preventing sucessfule start whit default settings.
+-	Fix bug preventing sucessful start with default settings.
 
 ## 1.0.9
 Update 
