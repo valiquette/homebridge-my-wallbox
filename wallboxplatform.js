@@ -71,14 +71,21 @@ class wallboxPlatform {
 		this.userId=userId.data.data.attributes.value
 		//get groups
 		let groups=await this.wallboxapi.getChargerGroups(this.token).catch(err=>{this.log.error('Failed to get groups for build', err)})
-		this.log.debug('Found groups for %s ', groups.data.result.groups[0].name)
+		groups.data.result.groups.forEach((group)=>{
+			this.log.info('Found group for %s ', group.name)
+			group.chargers.forEach((charger)=>{
+				this.log.info('Found %s with software %s',charger.name, charger.software.currentVersion)
+				if(charger.software.updateAvailable){
+					this.log.warn('%s software update %s is available',charger.name, charger.software.latestVersion)
+				}
+			})
+		})
 		//get user
 		let user=await this.wallboxapi.getUser(this.token,this.userId).catch(err=>{this.log.error('Failed to get user for build', err)})
 		this.log.info('Found account for %s %s', user.data.data.name, user.data.data.surname)				
 		user.data.data.accessConfigs.filter((accessConfig)=>{
 			groups.data.result.groups.forEach((group)=>{
-			if(!this.locationName || (this.locationName==group.name && accessConfig.group==group.id)){
-			//if(!this.locationName || this.locationName==group.name){	
+			if(!this.locationName || (this.locationName==group.name && accessConfig.group==group.id)){	
 				this.log.info('Device found at the location: %s',group.name)
 				this.locationMatch=true
 			}	
@@ -236,7 +243,6 @@ class wallboxPlatform {
 							if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 							if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
 							if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
-							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", false, chargerData.locked, false )
 							break
 						case 194: //'Charging':
 							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -248,19 +254,6 @@ class wallboxPlatform {
 							if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(true)}
 							if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)}
 							if(this.showBattery){this.calcBattery(batteryService)}
-							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, true )
-							break	
-						case 181: //'Connected: waiting for car demand':
-							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-							lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
-							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
-							lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
-							if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
-							if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
-							if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
-							if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
-							if(this.showBattery){clearInterval(this.endTime[batteryService.subtype])}
-							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, false )
 							break	
 						case 209: //'Locked':
 							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -271,7 +264,6 @@ class wallboxPlatform {
 							if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 							if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
 							if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
-							this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", false, chargerData.locked, false )
 							break
 						case 4: //'Complete':
 							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -284,9 +276,12 @@ class wallboxPlatform {
 							if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 							if(this.showBattery){batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(stateOfCharge)}
 							this.log.info('%s completed at %s',chargerData.name, new Date().toLocaleString())
-							//this.log.debug("Locked=%s, Outlet in use=%s, Charging=%s", true, chargerData.locked, false )
 							break
 						case 5: //Offline':
+							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.GENERAL_FAULT)
+							this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection*1000).toLocaleString())
+							break
+						case 0: //'Dissconnected':
 							lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.GENERAL_FAULT)
 							this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',chargerData.name, new Date(chargerData.lastConnection*1000).toLocaleString())
 							break

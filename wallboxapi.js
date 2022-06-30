@@ -110,7 +110,7 @@ wallboxAPI.prototype={
 						'Authorization': 'Bearer '+token
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting charger %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{this.log.error('Error getting charger %s', JSON.stringify(err.config.url,null,2))})
 			if(response){this.log.debug('get charger data response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger %s', err)}

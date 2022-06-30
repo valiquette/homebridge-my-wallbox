@@ -1,5 +1,13 @@
 # Changes
 
+## 1.0.12
+Update
+-	Added suppport for new status message.
+- cleanup some error messaging
+
+## 1.0.11
+Test
+
 ## 1.0.10
 Fix
 -	Fix bug preventing sucessful start with default settings.
