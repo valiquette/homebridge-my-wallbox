@@ -1,9 +1,16 @@
 # Changes
 
+## 1.0.13
+Update
+-	Correct error handling on start and include retry logic.
+- Cleaned up some error messaging
+-	Bumped dependencies
+
 ## 1.0.12
+
 Update
 -	Added suppport for new status message.
-- cleanup some error messaging
+- Cleaned up some error messaging
 
 ## 1.0.11
 Test
@@ -15,8 +22,8 @@ Fix
 ## 1.0.9
 Update 
 -	Code cleanup
-- bumped dependencies
-- corrected benign unknown device warning message.
+- Bumped dependencies
+- Corrected benign unknown device warning message.
 
 ## 1.0.8 -beta
 Update 

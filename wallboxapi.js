@@ -20,7 +20,10 @@ wallboxAPI.prototype={
 						'Content-Type': 'application/json',
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error checking email %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error checking email %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error checking email %s', err)}
@@ -41,7 +44,10 @@ wallboxAPI.prototype={
 						'Referer':'https://my.wallbox.com/'
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting token %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error getting token %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
 			return  response
 		}catch(err) {this.log.error('Error retrieving token %s', err)}
@@ -58,7 +64,10 @@ wallboxAPI.prototype={
 						'Authorization': 'Bearer '+token
 						},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting ID %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error getting ID %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving ID %s', err)}
@@ -75,7 +84,10 @@ wallboxAPI.prototype={
 						'Authorization': 'Bearer '+token
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting user ID %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error getting user ID %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving user ID %s', err)}
@@ -92,7 +104,10 @@ wallboxAPI.prototype={
 						'Authorization': 'Bearer '+token
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting charger groups %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error getting charger groups %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger groups %s', err)}
@@ -110,7 +125,10 @@ wallboxAPI.prototype={
 						'Authorization': 'Bearer '+token
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting charger %s', JSON.stringify(err.config.url,null,2))})
+			}).catch(err=>{
+				this.log.error('Error getting charger %s', JSON.stringify(err.message.url,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('get charger data response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger %s', err)}
@@ -127,7 +145,10 @@ wallboxAPI.prototype={
 						'Authorization': 'Bearer '+token
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error getting charger config %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error getting charger config %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger config %s', err)}
@@ -147,7 +168,10 @@ wallboxAPI.prototype={
 						"locked": value
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error locking charger config %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error locking charger config %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('put lock response',response.status)}
 			return response
 		}catch(err) {this.log.error('Error setting lock state config %s', err)}
@@ -167,7 +191,10 @@ wallboxAPI.prototype={
 						"maxChargingCurrent": value
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error setting amperage %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error setting amperage %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('put setAmps response',response.status)}
 			return response
 		}catch(err) {this.log.error('Error setting amperage %s', err)}
@@ -196,7 +223,10 @@ wallboxAPI.prototype={
 						"action": action
 					},
 					responseType: 'json'
-			}).catch(err=>{this.log.error('Error locking charger config %s', JSON.stringify(err.config,null,2))})
+			}).catch(err=>{
+				this.log.error('Error locking charger config %s', JSON.stringify(err.message,null,2))
+				this.log.debug(JSON.stringify(err.config,null,2))
+			})
 			if(response){this.log.debug('put lock response',response.status)}
 			return response
 		}catch(err) {this.log.error('Error setting lock state config %s', err)}
