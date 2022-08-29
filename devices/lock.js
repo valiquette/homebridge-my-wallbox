@@ -8,7 +8,7 @@ function lockMechanism (platform,log){
 }
 
 lockMechanism.prototype={
-
+	
   createLockAccessory(device,uuid){
     this.log.debug('Create Lock Accessory %s',device.name)
     let newPlatformAccessory=new PlatformAccessory(device.name, uuid)
@@ -35,27 +35,28 @@ lockMechanism.prototype={
     return lockService
   },
 
-  configureLockService(lockService,currentState){
+  configureLockService(device, lockService){
     this.log.debug("configured Lock for %s",lockService.getCharacteristic(Characteristic.Name).value)
     lockService
-			.setCharacteristic(Characteristic.LockCurrentState, currentState)
-			.setCharacteristic(Characteristic.LockTargetState, currentState)
+			.setCharacteristic(Characteristic.LockCurrentState, device.locked)
+			.setCharacteristic(Characteristic.LockTargetState, device.locked)
 		lockService
 			.getCharacteristic(Characteristic.LockTargetState)
-			.on('get', this.getLockTargetState.bind(this, lockService))
-      .on('set', this.setLockTargetState.bind(this, lockService))
+			.on('get', this.getLockTargetState.bind(this,lockService))
+      .on('set', this.setLockTargetState.bind(this, device, lockService))
 		lockService
 			.getCharacteristic(Characteristic.LockCurrentState)
-			.on('get', this.getLockCurrentState.bind(this, lockService))
-			//.on('set', this.setLockCurrentState.bind(this, lockService))
+			.on('get', this.getLockCurrentState.bind(this, device, lockService))
+			//.on('set', this.setLockCurrentState.bind(this, device, lockService))
   },
 
-	getLockCurrentState: function (lockService, callback) {
+	getLockCurrentState: function (device,lockService, callback) {
 		let currentValue=lockService.getCharacteristic(Characteristic.LockCurrentState).value
 		callback(null,currentValue)
+		this.platform.startLiveUpdate(device)
 	},
 
-	setLockCurrentState: function (lockService, value, callback) {
+	setLockCurrentState: function (device, lockService, value, callback) {
 		this.log.info('Set State %s',lockService.getCharacteristic(Characteristic.Name).value)
 		if(lockService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
@@ -78,7 +79,7 @@ lockMechanism.prototype={
 		callback(null,currentValue)
 	},
 
-	setLockTargetState: function (lockService, value, callback) {
+	setLockTargetState: function (device, lockService, value, callback) {
 		if(lockService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
 		}

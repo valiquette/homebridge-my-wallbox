@@ -11,17 +11,15 @@ control.prototype={
 
   createControlService(device, type){
     this.log.debug('adding new control')
-		//let currentAmps=Math.round((device.maxChargingCurrent-32)*5/9)
 		let currentAmps=((device.maxChargingCurrent-32)*5/9).toFixed(2)
-		let currentTemp=((0-32)*5/9).toFixed(2)
 		let controlService=new Service.Thermostat(type, device.id)
     controlService 
       .setCharacteristic(Characteristic.Name, type)
       .setCharacteristic(Characteristic.StatusFault,false)
 			.setCharacteristic(Characteristic.TargetTemperature, currentAmps) //4.4444
-			.setCharacteristic(Characteristic.CurrentTemperature, currentTemp) //-17.7778
+			.setCharacteristic(Characteristic.CurrentTemperature, currentAmps) 
 			.setCharacteristic(Characteristic.TemperatureDisplayUnits,false)
-			.setCharacteristic(Characteristic.TargetHeatingCoolingState,0)
+			.setCharacteristic(Characteristic.TargetHeatingCoolingState,0) //off
 			.setCharacteristic(Characteristic.CurrentHeatingCoolingState,0)
     return controlService
   },
@@ -51,7 +49,6 @@ control.prototype={
   },
 
 	setControlAmps(device, controlService, value, callback){
-		//let amps=Math.round(value*1.8+32)
 		let amps=(value*1.8+32).toFixed(2)
 		this.log.debug('set amps',value, amps)
 		this.wallboxapi.setAmps(this.platform.token,device.id,amps).then(response=>{
@@ -61,58 +58,63 @@ control.prototype={
 		},
 
 	setControlState(device, controlService, value, callback){
-		this.platform.updateStatus(device.id).then(state=>{
-			this.log.debug('check state %s',state)
-			if(state==( 181 || 194 || 209)){
+		this.wallboxapi.getChargerData(this.platform.token,device.id).then(response=>{
+			try{
+				locked=response.data.data.chargerData.locked
+				this.log.debug('check lock state = %s',locked)
+			}catch(error){
+				locked=true
+				this.log.error("failed lock state check")
+			}			
+			if(!locked){
 				this.log.debug('toggle switch state %s',controlService.getCharacteristic(Characteristic.Name).value)
 				if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 					callback('error')
 				}
 				else{
 					if(value){
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'start_charging').then(response=>{
-							switch(response.status){
-								case 200:
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
-									break
-								default:
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
-									this.log.info('Failed to start charging %s',response.data.title)
-									this.log.debug(response.data)
-									break
-								}
-						})	
-					} 
-					else {
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'stop_charging').then(response=>{
+						this.wallboxapi.remoteAction(this.platform.token,device.id,'start').then(response=>{
 							switch(response.status){
 								case 200:
 									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
 									break
 								default:
 									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
-									this.log.info('Failed to stop charging %s',response.data.title)
+									this.log.info('Failed to start charging')
+									this.log.debug(response.data)
+									break
+								}
+						})	
+					} 
+					else {
+						this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').then(response=>{
+							switch(response.status){
+								case 200:
+									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(value)
+									break
+								default:
+									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
+									this.log.info('Failed to pause charging')
 									this.log.debug(response.data)
 									break
 								}
 						})	
 					}
-					callback(value)
+					callback()
 				} 
 			}
 			else{
-				this.log.info('Unable to start at this time')
+				this.log.info('Charger must be unlocked for this operation')
 				controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(!value)
-				controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(!value)
-				callback(value)
+				callback()
 			}	
 		})
+		//this.platform.startLiveUpdate(device)
 	},
 
 	getControlState(controlService, callback){
 		if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
-			//callback('error')
+			callback('error')
 		}
 		else{
 			let currentValue=controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value
@@ -122,11 +124,10 @@ control.prototype={
 
 	getControlAmps(controlService, callback){
 		if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
-			//callback('error')
+			callback('error')
 		}
 		else{
-			let currentValue=controlService.getCharacteristic(Characteristic.TargetTemperature).value
-			//let currentAmps=Math.round(currentValue*1.8+32)
+			let currentValue=controlService.getCharacteristic(Characteristic.CurrentTemperature).value
 			if(currentValue>4.5){currentValue=4.44444}
 			callback(null, currentValue)
 		}

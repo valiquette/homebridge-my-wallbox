@@ -28,13 +28,32 @@
 			},
 			"refreshRate": {
 				"title": "Refresh Rate",
-				"description": "Polling time in minutes to refresh data.",
+				"description": "Polling time in hours to refresh data. Default 12",
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 24,
+				"required": true,
+				"default": 12
+			},	
+			"liveRefreshTimeout": {
+				"title": "Live Timeout",
+				"description": "Live polling duration in minutes. Default 2",
+				"type": "integer",
+				"minimum": 1,
+				"maximum": 5,
+				"required": true,
+				"default": 2
+			},
+			"liveRefreshRate": {
+				"title": "Live Refresh Rate",
+				"description": "Polling time in seconds to refresh data during an active session. Default 20 <br>Setting this less than 20 seconds may casue display to toggle back once if the car is slow to respond.",
 				"type": "integer",
 				"minimum": 5,
-				"maximum": 60,
+				"maximum": 30,
 				"required": true,
-				"default": 30
+				"default": 20
 			},
+
 			"cars": {
         "title": "Cars",
         "type": "array",
@@ -77,19 +96,19 @@
 				"type": "integer",
 				"required": true,
 				"default": 0,
-				"description": "Select the control type to display in Homkit.",
+				"description": "Select the controls to display in Homkit.",
 				"oneOf": [
 					{
-						"title": "None",
+						"title": "Lock Only",
 						"enum": [0]
 					},
 					{
-						"title": "Simple Start/Stop",
+						"title": "Lock with Start/Pause as Switch",
 						"enum": [1]
 					},
 					{
-						"title": "Start/Stop with Amperage Adjustments",
-						"enum": [2]
+						"title": "Lock with Start/Pause as Outlet",
+						"enum": [5]
 					},
 					{
 						"title": "Full Control in the form of a Thermostat",
@@ -124,15 +143,8 @@
 			]
 		},
 		{
-			"type": "flex",
-			"flex-flow": "row wrap",
-			"items": [
-				"refreshRate"
-			]
-		},
-		{
       "type": "help",
-      "helpvalue": "<h6><b>Location Support</b></h6><p class='help-block'> If you have more than one location and want to display them in separate Homebridge/HomeKit homes you can retrive only the devices at this loction name otherwise leave blank.<br/>The location must match the location configured in the Wallbox app, review the log file to see the adresses as configured in the Easee app.</p>"
+      "helpvalue": "<h6><b>Location Support</b></h6><p class='help-block'> If you have more than one location and want to display them in separate Homebridge/HomeKit homes you can retrive only the devices at this loction name otherwise leave blank.<br/>The location must match the location configured in the Wallbox app, review the log file to see the adresses as configured in the WallBox app.</p>"
     },
     {
       "type": "flex",
@@ -160,6 +172,18 @@
 			"flex-flow": "row wrap",
 			"items": [
 				"showControls"
+			]
+		},
+		{
+			"type": "fieldset",
+			"title": "Advanced",
+			"description": "Expand to adjust timeouts",
+			"expandable": true,
+			"flex-flow": "row wrap",
+			"items": [
+				"refreshRate",
+				"liveRefreshTimeout",
+				"liveRefreshRate"
 			]
 		}
 	]

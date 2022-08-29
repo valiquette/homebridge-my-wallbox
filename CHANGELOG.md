@@ -1,5 +1,14 @@
 # Changes
 
+## 1.0.14
+Update
+- Improved up some error messaging
+- Fixed bug with Start/Pause control
+- Refactored code
+- Changed switch to outlet
+- Removed light control for amperage
+
+
 ## 1.0.13
 Update
 -	Correct error handling on start and include retry logic.

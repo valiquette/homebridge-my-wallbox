@@ -28,56 +28,63 @@ basicSwitch.prototype={
       .on('get', this.getSwitchValue.bind(this, switchService))
       .on('set', this.setSwitchValue.bind(this, device, switchService))
   },
+	
   setSwitchValue(device, switchService, value, callback){
-		this.platform.updateStatus(device.id).then(state=>{
-			this.log.debug('check state %s',state)
-			if(state==( 181 || 194 || 209)){
+		this.wallboxapi.getChargerData(this.platform.token,device.id).then(response=>{
+			try{
+				locked=response.data.data.chargerData.locked
+				this.log.debug('check lock state = %s',locked)
+			}catch(error){
+				locked=true
+				this.log.error("failed lock state check")
+			}			
+			if(!locked){
 				this.log.debug('toggle switch state %s',switchService.getCharacteristic(Characteristic.Name).value)
 				if(switchService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 					callback('error')
 				}
 				else{
 					if(value){
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'start_charging').then(response=>{
+						this.wallboxapi.remoteAction(this.platform.token,device.id,'start').then(response=>{
 							switch(response.status){
 								case 200:
 									switchService.getCharacteristic(Characteristic.On).updateValue(value)
 									break
 								default:
 									switchService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.info('Failed to start charging %s',response.data.title)
+									this.log.info('Failed to start charging')
 									this.log.debug(response.data)
 									break
 								}
 						})	
 					} 
 					else {
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'stop_charging').then(response=>{
+						this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').then(response=>{
 							switch(response.status){
 								case 200:
 									switchService.getCharacteristic(Characteristic.On).updateValue(value)
 									break
 								default:
 									switchService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.info('Failed to stop charging %s',response.data.title)
+									this.log.info('Failed to stop charging')
 									this.log.debug(response.data)
 									break
 								}
 						})	
 					}
-					callback(value)
+					callback()
 				} 
 			}
 			else{
-				this.log.info('Unable to start/stop at this time')
+				this.log.info('Charger must be unlocked for this operation')
 				switchService.getCharacteristic(Characteristic.On).updateValue(!value)
-				callback(value)
+				callback()
 			}	
 		})
+		//this.platform.startLiveUpdate(device)
   },
 
 	getSwitchValue(switchService, callback){
-		//this.log.debug("%s=%s", switchService.getCharacteristic(Characteristic.Name).value,switchService.getCharacteristic(Characteristic.On).value)
 		if(switchService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
 		}
