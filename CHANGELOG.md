@@ -7,6 +7,7 @@ Update
 - Refactored code
 - Changed switch to outlet
 - Removed light control for amperage
+- Added support for devices using Celsius 
 
 
 ## 1.0.13

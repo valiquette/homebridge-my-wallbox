@@ -45,13 +45,13 @@ fan.prototype={
 	setFanAmps(device, fanService, value, callback){
 		this.wallboxapi.getChargerData(this.platform.token,device.id).then(response=>{
 			try{
-				locked=response.data.data.chargerData.locked
-				this.log.debug('check lock state = %s',locked)
+				connected=response.data.data.chargerData.status
+				this.log.debug('check connected state = %s',connected)
 			}catch(error){
-				locked=true
-				this.log.error("failed lock state check")
-			}			
-			if(!locked){
+				connected=209
+				this.log.error("failed connected state check")
+			}		
+			if(connected!=(161 && 209)){
 				this.log.debug('set amps %s',fanService.getCharacteristic(Characteristic.Name).value)
 				if(fanService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 					callback('error')
@@ -73,24 +73,23 @@ fan.prototype={
 				} 
 			}
 			else{
-				this.log.info('Charger must be unlocked for this operation')
+				this.log.info('Car must be connected for this operation')
 				fanService.getCharacteristic(Characteristic.On).updateValue(!value)
 				callback()
 			}	
 		})
-		//this.platform.startLiveUpdate(device)
 	},
 
 	setFanState(device, fanService, value, callback){
 		this.wallboxapi.getChargerData(this.platform.token,device.id).then(response=>{
 			try{
-				locked=response.data.data.chargerData.locked
-				this.log.debug('check lock state = %s',locked)
+				connected=response.data.data.chargerData.status
+				this.log.debug('check connected state = %s',connected)
 			}catch(error){
-				locked=true
-				this.log.error("failed lock state check")
-			}			
-			if(!locked){
+				connected=209
+				this.log.error("failed connected state check")
+			}		
+			if(connected!=(161 && 209)){
 				this.log.debug('toggle switch state %s',fanService.getCharacteristic(Characteristic.Name).value)
 				if(fanService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 					callback('error')
@@ -128,12 +127,11 @@ fan.prototype={
 				} 
 			}
 			else{
-				this.log.info('Charger must be unlocked for this operation')
-				fanService.getCharacteristic(Characteristic.On).updateValue(!value)
+				this.log.info('Car must be connected for this operation')
+				switchService.getCharacteristic(Characteristic.On).updateValue(!value)
 				callback()
 			}	
 		})
-		//this.platform.startLiveUpdate(device)
 	},
 
 	getFanState(fanService, callback){

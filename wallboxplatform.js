@@ -33,6 +33,7 @@ class wallboxPlatform {
 		this.liveUpdate=false
 		this.showBattery=config.showBattery
 		this.showControls=config.showControls
+		this.useFahrenheit=config.useFahrenheit || true
 		this.id
     this.userId
 		this.cars=config.cars
@@ -43,6 +44,10 @@ class wallboxPlatform {
 		this.accessories=[]
 		this.amps=[]
 		this.endTime=[]
+		if(this.showControls==7){
+			this.showControls=3
+			this.useFahrenheit=false
+		}
 		if(config.cars){this.showBattery=true}
     if(!config.email || !config.password){
       this.log.error('Valid email and password are required in order to communicate with wallbox, please check the plugin config')
@@ -365,9 +370,15 @@ class wallboxPlatform {
 				break		
 			case 209: //'Locked':
 				lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
-				//lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
+				lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(false)
 				lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
+				if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
+				if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 				break
 				case 4: //'Complete':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
