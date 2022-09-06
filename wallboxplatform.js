@@ -26,10 +26,11 @@ class wallboxPlatform {
     this.password=config.password
     this.token
 		this.retryWait=config.retryWait || 30 //sec
-		this.refreshRate=config.refreshRate || 12 //hour
+		this.refreshRate=config.refreshRate || 24 //hour
 		this.liveTimeout=config.liveRefreshTimeout || 2 //min
-		this.liveRefresh=config.liveRefreshRate || 10 //sec
+		this.liveRefresh=config.liveRefreshRate || 20 //sec
 		this.lastInterval
+		this.apiCount=0
 		this.liveUpdate=false
 		this.showBattery=config.showBattery
 		this.showControls=config.showControls
@@ -168,8 +169,9 @@ class wallboxPlatform {
 						}
 						this.accessories[uuid]=lockAccessory                     
 						this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
-						this.setChargerRefresh(chargerData.id)
-						this.getStatus(chargerData.id)
+						this.setChargerRefresh(chargerData)
+						//this.getStatus(chargerData.id)
+						this.updateStatus(response)
 					}).catch(err=>{this.log.error('Failed to get info for build', err)})
 				})
 			})
@@ -183,50 +185,47 @@ class wallboxPlatform {
 	}
 
 	async setTokenRefresh(ttl){
-			// Refresh token every 14 days, before 15 day expiration
 			if(ttl>Date.now()-3600000){
 				setInterval(async()=>{		
 					try{		
-						//this.wallboxapi.signin(this.email,this.password).then(signin=>{
-							let signin=await this.wallboxapi.signin(this.email,this.password) 
-							this.log.debug('refreshed token %s',signin.data.data.attributes.token)
-							this.token=signin.data.data.attributes.token 	
-							this.log.info('Token has been refreshed')
-						//}).catch(err=>{this.log.error('Failed signin to refresh token', err)})
+						let signin=await this.wallboxapi.signin(this.email,this.password) 
+						this.log.debug('refreshed token %s',signin.data.data.attributes.token)
+						this.token=signin.data.data.attributes.token 	
+						this.log.info('Token has been refreshed')
 					}catch(err){this.log.error('Failed to refresh token', err)}	
-				//}, 14*24*60*60*1000)
-				},ttl-Date.now()-3600000) // ~15 days -1 hour
+				},ttl-Date.now()-3600000) // ~15 day ttl -1 hour
 			}
 			else{
 				this.log.warn('Unable to set refresh token interval')
 			}
 		}	
 
-	setChargerRefresh(id){
+	setChargerRefresh(device){
 		// Refresh charger status
-			setInterval(()=>{		
-				this.getStatus(id)
+			setInterval(async()=>{	
+				this.log('API polling update calls for this polling period %s',this.apiCount)
+				this.apiCount=0	
+				this.getStatus(device.id)
 			}, this.refreshRate*60*60*1000)
 		}
 
 	startLiveUpdate(device){
+		clearInterval(this.lastInterval)
 		let startTime = new Date().getTime() //live refresh
-		if(!this.liveUpdate){this.log.info("live update started")}
-		let interval = setInterval(async()=>{
-			this.liveUpdate=true
-				if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
+		if(!this.liveUpdate){this.log.debug("live update started")}
+		this.liveUpdate=true
+			let interval = setInterval(async()=>{
+				this.lastInterval-interval
+					if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
 						clearInterval(interval)
 						this.liveUpdate=false
-						this.log.info("live update stopped")
+						this.log.debug("live update stopped")
 						return
-				}
-				if(interval!=this.lastInterval){
-					clearInterval(interval)
-					this.log.info("live update restarted")
-					return
-				}
+					}
+					this.apiCount=this.apiCount+1
+					this.log.debug('API get count %s',this.apiCount)
 				this.getStatus(device.id)
-		}, this.liveRefresh*1000)
+			}, this.liveRefresh*1000)
 		this.lastInterval=interval
 	}	
 
@@ -264,8 +263,10 @@ class wallboxPlatform {
 	async	getStatus(id){
 	try{
 		this.wallboxapi.getChargerData(this.token,id).then(response=>{
-			this.updateStatus(response)
-			this.log.debug('Refreshed charger with status=%s',response.data.data.chargerData.status)
+			if(response){
+				this.updateStatus(response)
+				this.log.debug('Refreshed charger with status=%s',response.data.data.chargerData.status)
+			}
 		}).catch(err=>{this.log.error(err)})
 		}catch(err) {this.log.error('Error updating status %s', err)}
 	}
@@ -292,15 +293,16 @@ class wallboxPlatform {
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerData.id)}		
 			/*
 			staus to statusDescription
-			161: "Ready"
-			178: "Waiting for car request"
-			194: "Charging"
-			181: "Connected: waiting for car demand"
-			182: "Paused"
-			209: "Locked"
+			161: "Ready: Plug your car in"
+			178: "Waiting: Waiting for car request from your car"
+			181: "Connected: Waiting for car demand"
+			182: "Paused: Press Play to resume charging"
+			194: "Charging: Plugged and running"
+			209: "Locked: Unlock to start session" no car
+			210: "Locked: Unlock to start session" car connected
 			4: "Complete"
 			5: "Offline"
-			*/
+			*/	
 			let stateOfCharge=0
 			if(chargerData.stateOfCharge){stateOfCharge=chargerData.stateOfCharge}
 			switch(chargerData.status){
@@ -311,7 +313,15 @@ class wallboxPlatform {
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(false)}
 					if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(false)}
-					if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
+					if(this.showControls==3 || this.showControls==4){
+						controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+						if(this.useFahrenheit){
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+						}
+						else{
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+						}	
+					}
 					if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 					if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
 					if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
@@ -323,8 +333,15 @@ class wallboxPlatform {
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(true)}
-					if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(true)}
-					if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
+					if(this.showControls==3 || this.showControls==4){
+						controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+						if(this.useFahrenheit){
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+						}
+						else{
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+						}	
+					}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 					if(this.showBattery){this.calcBattery(batteryService)}
@@ -336,8 +353,15 @@ class wallboxPlatform {
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(true)}
-					if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(true)}
-					if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
+					if(this.showControls==3 || this.showControls==4){
+						controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+						if(this.useFahrenheit){
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+						}
+						else{
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+						}	
+					}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)}
 					if(this.showBattery){this.calcBattery(batteryService)}
@@ -349,8 +373,15 @@ class wallboxPlatform {
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(true)}
-					if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(true)}
-					if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
+					if(this.showControls==3 || this.showControls==4){
+						controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+						if(this.useFahrenheit){
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+						}
+						else{
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+						}	
+					}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(true)}
 					if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 					if(this.showBattery){this.calcBattery(batteryService)}
@@ -362,8 +393,15 @@ class wallboxPlatform {
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 				if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(false)}
 				if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(false)}
-				if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
-				if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==3 || this.showControls==4){
+					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+					if(this.useFahrenheit){
+						controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+					}
+					else{
+						controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+					}	
+				}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 				if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
 				if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 				if(this.showBattery){this.calcBattery(batteryService)}
@@ -375,8 +413,34 @@ class wallboxPlatform {
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 				if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(false)}
 				if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(false)}
-				if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
-				if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==3 || this.showControls==4){
+					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+					if(this.useFahrenheit){
+						controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+					}
+					else{
+						controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+					}	
+				}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
+				break
+			case 210: //'Locked Car connected':
+				lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
+				lockService.getCharacteristic(Characteristic.OutletInUse).updateValue(true)
+				lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(chargerData.locked)
+				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
+				if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(false)}
+				if(this.showControls==3 || this.showControls==4){
+					controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+					if(this.useFahrenheit){
+						controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+					}
+					else{
+						controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+					}	
+				}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 				if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
 				if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 				break
@@ -387,8 +451,15 @@ class wallboxPlatform {
 					lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(chargerData.locked)
 					if(this.showControls==6 || this.showControls==4){fanService.getCharacteristic(Characteristic.On).updateValue(false)}
 					if(this.showControls==5 || this.showControls==4){outletService.getCharacteristic(Characteristic.On).updateValue(false)}
-					if(this.showControls==3 || this.showControls==4){controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)}
-					if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
+					if(this.showControls==3 || this.showControls==4){
+						controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(false)
+						if(this.useFahrenheit){
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(((chargerData.maxChargingCurrent-32)*5/9).toFixed(2))
+						}
+						else{
+							controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(chargerData.maxChargingCurrent)
+						}	
+					}if(this.showControls==2 || this.showControls==4){lightService.getCharacteristic(Characteristic.On).updateValue(false)}
 					if(this.showControls==1 || this.showControls==4){switchService.getCharacteristic(Characteristic.On).updateValue(false)}
 					if(this.showBattery){batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)}
 					if(this.showBattery){batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(stateOfCharge)}

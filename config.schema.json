@@ -27,13 +27,13 @@
 				"required": true
 			},
 			"refreshRate": {
-				"title": "Refresh Rate",
-				"description": "Polling time in hours to refresh data. Default 12",
+				"title": "Hourly Refresh Rate",
+				"description": "Polling time in hours to refresh data. Default 24",
 				"type": "integer",
 				"minimum": 1,
 				"maximum": 24,
 				"required": true,
-				"default": 12
+				"default": 24
 			},	
 			"liveRefreshTimeout": {
 				"title": "Live Timeout",
@@ -181,7 +181,7 @@
 		{
 			"type": "fieldset",
 			"title": "Advanced",
-			"description": "Expand to adjust timeouts",
+			"description": "Expand to adjust polling timers",
 			"expandable": true,
 			"flex-flow": "row wrap",
 			"items": [

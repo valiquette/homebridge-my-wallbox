@@ -37,51 +37,84 @@ basicOutlet.prototype={
 			}catch(error){
 				connected=209
 				this.log.error("failed connected state check")
-			}		
-			if(connected!=(161 && 209)){
-				this.log.debug('toggle outlet state %s',outletService.getCharacteristic(Characteristic.Name).value)
-				if(outletService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
-					callback('error')
-				}
-				else{
-					if(value){
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'start').then(response=>{
-							switch(response.status){
-								case 200:
-									outletService.getCharacteristic(Characteristic.On).updateValue(value)
-									this.log.info('Resumed charging')
-									break
-								default:
-									outletService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.info('Failed to start charging')
-									this.log.debug(response.data)
-									break
-								}
-						})	
-					} 
-					else {
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').then(response=>{
-							switch(response.status){
-								case 200:
-									outletService.getCharacteristic(Characteristic.On).updateValue(value)
-									this.log.info('Paused charging')
-									break
-								default:
-									outletService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.info('Failed to stop charging')
-									this.log.debug(response.data)
-									break
-								}
-						})	
-					}
-					callback()
-				} 
-			}
-			else{
-				this.log.info('Car must be connected for this operation')
-				outletService.getCharacteristic(Characteristic.On).updateValue(!value)
-				callback()
 			}	
+			/*
+			staus to statusDescription
+			161: "Ready: Plug your car in"
+			178: "Waiting: Waiting for car request from your car"
+			181: "Connected: Waiting for car demand"
+			182: "Paused: Press Play to resume charging"
+			194: "Charging: Plugged and running"
+			209: "Locked: Unlock to start session" no car
+			210: "Locked: Unlock to start session" car connected
+			4: "Complete"
+			5: "Offline"
+			*/	
+			switch (connected){
+				case 161: //no car
+				case 209:
+					this.log.info('Car must be connected for this operation')
+					outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+					callback()
+					break
+				case 210: //car locked
+					this.log.info('Charger must be unlocked for this operation')
+					this.log.warn('Car Connected. Unlock charger to start session')
+					outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+					callback()
+					break
+				case 181:
+					this.log.info('Waiting for a charge request')
+					outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+					callback()
+					break
+				case 178: //car unocked 
+				case 182:	
+				case 194:
+					this.log.debug('toggle outlet state %s',outletService.getCharacteristic(Characteristic.Name).value)
+					if(outletService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
+						callback('error')
+					}
+					else{
+						if(value){
+							this.wallboxapi.remoteAction(this.platform.token,device.id,'start').then(response=>{
+								switch(response.status){
+									case 200:
+										outletService.getCharacteristic(Characteristic.On).updateValue(value)
+										this.log.info('Charging resumed')
+										break
+									default:
+										outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+										this.log.info('Failed to start charging')
+										this.log.debug(response.data)
+										break
+								}
+							})	
+						} 
+						else {
+							this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').then(response=>{
+								switch(response.status){
+									case 200:
+										outletService.getCharacteristic(Characteristic.On).updateValue(value)
+										this.log.info('Charging paused')
+										break
+									default:
+										outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+										this.log.info('Failed to stop charging')
+										this.log.debug(response.data)
+										break
+								}
+							})	
+						}
+					}	
+					callback()
+					break
+				default:
+					this.log.info('This opertation cannot be competed at this time')
+					outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+					callback()
+					break
+			}
 		})
   },
 
