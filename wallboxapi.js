@@ -15,7 +15,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving device')
 			let response = await axios({
 					method: 'get',
-					url: `${userEndpoint}/emails/${email}`,
+					baseURL:userEndpoint,
+					url: `/emails/${email}`,
 					headers: {
 						'Content-Type': 'application/json',
 					},
@@ -36,7 +37,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving token')
 			let response = await axios({
 					method: 'get',
-					url: `${userEndpoint}/signin`,
+					baseURL:userEndpoint,
+					url: `/signin`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Basic '+b64encoded,
@@ -60,7 +62,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving User ID')
 			let response = await axios({
 					method: 'get',
-					url: `${endpoint}/v4/users/${id}/id`,
+					baseURL:endpoint,
+					url: `/v4/users/${id}/id`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -81,7 +84,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving user info')
 			let response = await axios({
 					method: 'get',
-					url: `${endpoint}/v2/user/${userId}`,
+					baseURL:endpoint,
+					url: `/v2/user/${userId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -102,7 +106,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger groups')
 			let response = await axios({
 					method: 'get',
-					url: `${endpoint}/v3/chargers/groups`,
+					baseURL:endpoint,
+					url: `/v3/chargers/groups`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -124,7 +129,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger info')
 			let response = await axios({
 					method: 'get',
-					url: `${endpoint}/v2/charger/${chargerId}`,
+					baseURL:endpoint,
+					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -145,7 +151,8 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger config')
 			let response = await axios({
 					method: 'get',
-					url: `${endpoint}/chargers/config/${chargerId}`,
+					baseURL:endpoint,
+					url: `/chargers/config/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -166,7 +173,8 @@ wallboxAPI.prototype={
 			this.log.debug('Setting charger lock state for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
-					url: `${endpoint}/v2/charger/${chargerId}`,
+					baseURL:endpoint,
+					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -190,7 +198,8 @@ wallboxAPI.prototype={
 			this.log.debug('Setting amperage for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
-					url: `${endpoint}/v2/charger/${chargerId}`,
+					baseURL:endpoint,
+					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
@@ -223,7 +232,8 @@ wallboxAPI.prototype={
 			}
 			let response = await axios({
 					method: 'post',
-					url: `${endpoint}/v3/chargers/${chargerId}/remote-action`,
+					baseURL:endpoint,
+					url: `/v3/chargers/${chargerId}/remote-action`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': 'Bearer '+token
