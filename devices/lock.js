@@ -8,7 +8,7 @@ function lockMechanism (platform,log){
 }
 
 lockMechanism.prototype={
-	
+
   createLockAccessory(device,uuid){
     this.log.debug('Create Lock Accessory %s',device.name)
     let newPlatformAccessory=new PlatformAccessory(device.name, uuid)
@@ -65,7 +65,7 @@ lockMechanism.prototype={
 		if (value == true) {
 			this.log.info('%s locked',lockService.getCharacteristic(Characteristic.Name).value)
 			lockService.getCharacteristic(Characteristic.LockCurrentState).updatevalue(Characteristic.LockCurrentState.SECURED)
-		} 
+		}
 		else {
 			this.log.info('%s unlocked',lockService.getCharacteristic(Characteristic.Name).value)
 			lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
@@ -87,16 +87,14 @@ lockMechanism.prototype={
 			if (value == true) {
 				this.log.info('Locking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
-				//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.UNSECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
 				})
-			} 
+			}
 			else{
 				this.log.info('Unlocking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-				//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(Characteristic.LockCurrentState.SECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)

@@ -11,7 +11,7 @@ function wallboxAPI (platform,log){
 wallboxAPI.prototype={
 
 	checkEmail: async function(email){
-		try {  
+		try {
 			this.log.debug('Retrieving device')
 			let response = await axios({
 					method: 'get',
@@ -33,7 +33,7 @@ wallboxAPI.prototype={
 
 	signin: async function(email,password){
 	let b64encoded=(Buffer.from(email+':'+password,'utf8')).toString('base64')
-	try {  
+	try {
 			this.log.debug('Retrieving token')
 			let response = await axios({
 					method: 'get',
@@ -56,9 +56,9 @@ wallboxAPI.prototype={
 			return  response
 		}catch(err) {this.log.error('Error retrieving token %s', err)}
 	},
-	
+
 	getId: async function(token,id){
-	try {  
+	try {
 			this.log.debug('Retrieving User ID')
 			let response = await axios({
 					method: 'get',
@@ -80,7 +80,7 @@ wallboxAPI.prototype={
 	},
 
 	getUser: async function(token,userId){
-		try {  
+		try {
 			this.log.debug('Retrieving user info')
 			let response = await axios({
 					method: 'get',
@@ -102,7 +102,7 @@ wallboxAPI.prototype={
 	},
 
 	getChargerGroups: async function(token){
-		try {  
+		try {
 			this.log.debug('Retrieving charger groups')
 			let response = await axios({
 					method: 'get',
@@ -122,11 +122,32 @@ wallboxAPI.prototype={
 			return response
 		}catch(err) {this.log.error('Error retrieving charger groups %s', err)}
 	},
-	
+
+	getChargerStatus: async function(token,chargerId){
+		try {
+			this.log.debug('Retrieving charger status')
+			let response = await axios({
+					method: 'get',
+					baseURL:endpoint,
+					url: `/chargers/status/${chargerId}`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': 'Bearer '+token
+					},
+					responseType: 'json'
+			}).catch(err=>{
+				this.log.debug(JSON.stringify(err,null,2))
+				this.log.error('Error getting charger status %s', err.message)
+				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+			})
+			//if(response){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
+			return response
+		}catch(err) {this.log.error('Error retrieving charger status %s', err)}
+	},
 
 	getChargerData: async function(token,chargerId){
-		try {  
-			this.log.debug('Retrieving charger info')
+		try {
+			this.log.debug('Retrieving charger data')
 			let response = await axios({
 					method: 'get',
 					baseURL:endpoint,
@@ -138,16 +159,16 @@ wallboxAPI.prototype={
 					responseType: 'json'
 			}).catch(err=>{
 				this.log.debug(JSON.stringify(err,null,2))
-				this.log.error('Error getting charger %s', err.message)
+				this.log.error('Error getting charger data %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			//if(response){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
+			if(response){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
 			return response
-		}catch(err) {this.log.error('Error retrieving charger %s', err)}
+		}catch(err) {this.log.error('Error retrieving charger data %s', err)}
 	},
-	
+
 	getChargerConfig: async function(token,chargerId){
-		try {  
+		try {
 			this.log.debug('Retrieving charger config')
 			let response = await axios({
 					method: 'get',
@@ -169,7 +190,7 @@ wallboxAPI.prototype={
 	},
 
 	lock: async function(token,chargerId,value){
-		try {  
+		try {
 			this.log.debug('Setting charger lock state for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
@@ -194,7 +215,7 @@ wallboxAPI.prototype={
 	},
 
 	setAmps: async function(token,chargerId,value){
-		try {  
+		try {
 			this.log.debug('Setting amperage for %s to %s',chargerId,value)
 			let response = await axios({
 					method: 'put',
@@ -214,15 +235,17 @@ wallboxAPI.prototype={
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
 			if(response){this.log.debug('put setAmps response',response.status)}
+			if(response){this.log.debug('put setAmps response {maxChargingCurrent:%s}',JSON.stringify(response.data.data.chargerData.maxChargingCurrent,null,2))}
 			return response
 		}catch(err) {this.log.error('Error setting amperage %s', err)}
 	},
 
 	remoteAction: async function(token,chargerId,value){
-		try {  
+		try {
 			this.log.debug('Setting charging state for %s to %s',chargerId,value)
 			let action
 			switch(value){
+				case "resume":
 				case "start":
 					action=1
 					break

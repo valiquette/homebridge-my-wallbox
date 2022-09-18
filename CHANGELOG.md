@@ -1,13 +1,26 @@
 # Changes
 
+## 1.1.0
+Update
+- Changed API endpoint for staus updates.
+-	Refactored code for status updates.
+- Added support for additional status messages.
+- Refactored code for battery status
+-	Added status descriptions to logging after being dropped from API reponse.
+- Bumped dependencies.
+-	Code cleanup.
+- Updated Readme
+- Fixed some typos in logging output.
+- Bug fixes for some error handeling
+
 ## 1.0.14
 Update
 - Improved/updated some error messaging
 - Fixed bug with Start/Pause control
-- Refactored code for better polling behaviour 
+- Refactored code for better polling behavior
 - Added outlet option for Start/Pause function
-- Removed option for light control for amperage due to confusing precentage
-- Added support for devices using Celsius 
+- Removed option for light control for amperage due to confusing percentage
+- Added support for devices using Celsius
 
 
 ## 1.0.13
@@ -19,7 +32,7 @@ Update
 ## 1.0.12
 
 Update
--	Added suppport for new status message.
+-	Added support for new status message.
 - Cleaned up some error messaging
 
 ## 1.0.11
@@ -27,30 +40,30 @@ Test
 
 ## 1.0.10
 Fix
--	Fix bug preventing sucessful start with default settings.
+-	Fix bug preventing sucessfull start with default settings.
 
 ## 1.0.9
-Update 
+Update
 -	Code cleanup
 - Bumped dependencies
 - Corrected benign unknown device warning message.
 
 ## 1.0.8 -beta
-Update 
+Update
 -	Code cleanup
 - bumped dependencies
 - corrected benign unknown device warning message.
 
 ## 1.0.7
-Update 
--	Tied battery service option to having a car defined
+Update
+-	Tied battery service option to having a car defined.
 
 ## 1.0.6
 Update
 - Estimate battery charge added.
-- Added support for Start/Stop and Amps 
+- Added support for Start/Stop and Amps
 - Added location support
-- Code cleanup 
+- Code cleanup
 - Fix bug with "waiting' message
 
 ## 1.0.5
@@ -70,11 +83,11 @@ Update
 - Updated Readme.
 
 ## 1.0.2
-Fix 
+Fix
 - Address bug when status update did not match expected response.
 
 ## 1.0.1
-Initial 
+Initial
 - HomeKit support for Wallbox Charger locking.
 
 
