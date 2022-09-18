@@ -11,7 +11,7 @@ Update
 -	Code cleanup.
 - Updated Readme
 - Fixed some typos in logging output.
-- Bug fixes for some error handeling
+- Bug fixes for some error handeling.
 
 ## 1.0.14
 Update
