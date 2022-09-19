@@ -169,7 +169,7 @@
 				"cars[].carName",
 				"cars[].chargerName",
 				"cars[].kwH"
-					]			
+					]
 		},
 		{
 			"type": "flex",

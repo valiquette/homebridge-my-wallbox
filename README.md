@@ -11,11 +11,11 @@
 <br> Supports the ablity to lock and unlock charger from HomeKit
 <br> If you have more than one home on account you may filter chargers for a home based on the location name assigned in the Wallbox app for the location you want to display in HomeKit.
 
-This plugin has been tested or verified against hardware model/types
-- Wallbox Pulsar
-- Only been tested to date with email based accounts, Google and Apple logins are not currently supported. 
+This plugin has only been tested or verified against hardware model/types
+- Wallbox Pulsar Plus
+- Has only been tested to date with email based accounts, Google and Apple logins are currently not supported.
 
-Other hardware models/types may still work with this plugin and any feedback on devices not listed is welcome.
+Other hardware models/types may still work with this plugin and any feedback on devices not listed or status codes is welcome.
 
 ## Installation
 1. Install this plugin using: npm install -g homebridge-mywallbox
@@ -29,9 +29,9 @@ Other hardware models/types may still work with this plugin and any feedback on 
 	"name": "Wallbox",
 	"email": "username@email.com",
 	"password": "password",
-	"refreshRate": 60,
-	"liveRefreshRate": 10,
-	"liveRefreshTimeout": 300,
+	"refreshRate": 1,
+	"liveRefreshRate": 2,
+	"liveRefreshTimeout": 20,
 	"cars": [
 		{
 			"carName": "My EV",
