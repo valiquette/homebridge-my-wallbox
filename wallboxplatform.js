@@ -70,14 +70,17 @@ class wallboxPlatform {
 			// login to the API and get the token
 			let email=await this.wallboxapi.checkEmail(this.email).catch(err=>{this.log.error('Failed to get email for build', err)})
 			this.log.info('Email status %s',email.data.data.attributes.status)
-			// get signin
+			// get signin & token
 			let signin=await this.wallboxapi.signin(this.email,this.password).catch(err=>{this.log.error('Failed to get signin for build', err)})
 			this.log.debug('Found User ID %s',signin.data.data.attributes.user_id)
 			this.log.debug('Found Token %s',signin.data.data.attributes.token)
 			this.id=signin.data.data.attributes.user_id
 			this.token=signin.data.data.attributes.token
-			this.setTokenRefresh(signin.data.data.attributes.ttl)
-			//get token
+			//this.setTokenRefresh(signin.data.data.attributes.ttl-Date.now())
+			//this.log.warn(new Date(signin.data.data.attributes.ttl).toLocaleString())
+			//this.log.warn(new Date(Date.now()).toLocaleString())
+
+			//get get user id
 			let userId=await this.wallboxapi.getId(this.token,this.id).catch(err=>{this.log.error('Failed to get userId for build', err)})
 			this.log.debug('Found User ID %s',userId.data.data.attributes.value)
 			this.userId=userId.data.data.attributes.value
@@ -108,53 +111,52 @@ class wallboxPlatform {
 				})
 				return this.locationMatch
 			}).forEach((accessConfig)=>{
-				accessConfig.chargers.forEach((charger)=>{
+				accessConfig.chargers.forEach(async(charger)=>{
 					//loop each charger
-					this.wallboxapi.getChargerData(this.token,charger).then(response=>{
-						let chargerData=response.data.data.chargerData
-						let uuid=UUIDGen.generate(chargerData.uid)
-						if(this.accessories[uuid]){
-							this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
-							delete this.accessories[uuid]
-						}
-						this.log.info('Adding Lock for %s charger ', chargerData.name)
-						this.log.debug('Registering platform accessory')
+					let chargerDataResponse=await this.wallboxapi.getChargerData(this.token,charger).catch(err=>{this.log.error('Failed to get charger configs for build', err)})
+					let chargerData=chargerDataResponse.data.data.chargerData
+					let uuid=UUIDGen.generate(chargerData.uid)
+					if(this.accessories[uuid]){
+						this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
+						delete this.accessories[uuid]
+					}
+					this.log.info('Adding Lock for %s charger ', chargerData.name)
+					this.log.debug('Registering platform accessory')
 
-						let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
-						let lockService=this.lockMechanism.createLockService(chargerData)
-						this.lockMechanism.configureLockService(chargerData, lockService)
-						lockAccessory.addService(lockService)
+					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
+					let lockService=this.lockMechanism.createLockService(chargerData)
+					this.lockMechanism.configureLockService(chargerData, lockService)
+					lockAccessory.addService(lockService)
 
-						if(this.showBattery){
-							let batteryService=this.battery.createBatteryService(chargerData)
-							this.battery.configureBatteryService(batteryService)
-							lockAccessory.getService(Service.LockMechanism).addLinkedService(batteryService)
-							lockAccessory.addService(batteryService)
-							this.amps[batteryService.subtype]=chargerData.maxChgCurrent
-						}
-						if(this.showControls==5 || this.showControls==4){
-							let outletService=this.outlet.createOutletService(chargerData,'Start/Pause')
-							this.outlet.configureOutletService(chargerData, outletService)
-							lockAccessory.getService(Service.LockMechanism).addLinkedService(outletService)
-							lockAccessory.addService(outletService)
-						}
-						if(this.showControls==3 || this.showControls==4){
-							let controlService=this.control.createControlService(chargerData,'Amps')
-							this.control.configureControlService(chargerData, controlService)
-							lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
-							lockAccessory.addService(controlService)
-						}
-						if(this.showControls==1 || this.showControls==4){
-							let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
-							this.basicSwitch.configureSwitchService(chargerData, switchService)
-							lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
-							lockAccessory.addService(switchService)
-						}
-						this.accessories[uuid]=lockAccessory
-						this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
-						this.setChargerRefresh(chargerData)
-						this.getStatus(chargerData.id)
-					}).catch(err=>{this.log.error('Failed to get info for build', err)})
+					if(this.showBattery){
+						let batteryService=this.battery.createBatteryService(chargerData)
+						this.battery.configureBatteryService(batteryService)
+						lockAccessory.getService(Service.LockMechanism).addLinkedService(batteryService)
+						lockAccessory.addService(batteryService)
+						this.amps[batteryService.subtype]=chargerData.maxChgCurrent
+					}
+					if(this.showControls==5 || this.showControls==4){
+						let outletService=this.outlet.createOutletService(chargerData,'Start/Pause')
+						this.outlet.configureOutletService(chargerData, outletService)
+						lockAccessory.getService(Service.LockMechanism).addLinkedService(outletService)
+						lockAccessory.addService(outletService)
+					}
+					if(this.showControls==3 || this.showControls==4){
+						let controlService=this.control.createControlService(chargerData,'Amps')
+						this.control.configureControlService(chargerData, controlService)
+						lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
+						lockAccessory.addService(controlService)
+					}
+					if(this.showControls==1 || this.showControls==4){
+						let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
+						this.basicSwitch.configureSwitchService(chargerData, switchService)
+						lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
+						lockAccessory.addService(switchService)
+					}
+					this.accessories[uuid]=lockAccessory
+					this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
+					this.setChargerRefresh(chargerData)
+					this.getStatus(chargerData.id)
 				})
 			})
 			setTimeout(()=>{this.log.info('Wallbox Platform finished loading')}, 500)
@@ -166,16 +168,16 @@ class wallboxPlatform {
 		}
 	}
 
-	async setTokenRefresh(ttl){
-			if(ttl>Date.now()-3600000){
+	setTokenRefresh(ttl){ //stooped calling on start due to token ttl change
+			if(ttl>3600000){
 				setInterval(async()=>{
 					try{
-						let signin=await this.wallboxapi.signin(this.email,this.password)
+						let signin=await this.wallboxapi.signin(this.email,this.password).catch(err=>{this.log.error('Failed to refresh token', err)})
 						this.log.debug('refreshed token %s',signin.data.data.attributes.token)
 						this.token=signin.data.data.attributes.token
 						this.log.info('Token has been refreshed')
 					}catch(err){this.log.error('Failed to refresh token', err)}
-				},ttl-Date.now()-3600000) // ~15 day ttl -1 hour
+				},ttl) // ~15 day ttl -1 hour now 15 mins
 			}
 			else{
 				this.log.warn('Unable to set refresh token interval')
@@ -191,8 +193,11 @@ class wallboxPlatform {
 			}, this.refreshRate*60*60*1000)
 		}
 
-	startLiveUpdate(device){
+	async startLiveUpdate(device){
 		clearInterval(this.lastInterval)
+		//get new token
+		let signin=await this.wallboxapi.signin(this.email,this.password).catch(err=>{this.log.error('Failed to refresh token', err)})
+		this.token=signin.data.data.attributes.token
 		let startTime = new Date().getTime() //live refresh
 		if(!this.liveUpdate){this.log.debug("live update started")}
 		this.liveUpdate=true
@@ -229,11 +234,10 @@ class wallboxPlatform {
 
 	async	getStatus(id){
 	try{
-		this.wallboxapi.getChargerStatus(this.token,id).then(response=>{
-			if(response){
-				this.updateStatus(response.data)
+		let statusResponse=await this.wallboxapi.getChargerStatus(this.token,id).catch(err=>{this.log.error(err)})
+			if(statusResponse){
+				this.updateStatus(statusResponse.data)
 			}
-		}).catch(err=>{this.log.error(err)})
 		}catch(err) {this.log.error('Error updating status %s', err)}
 	}
 

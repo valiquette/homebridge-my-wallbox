@@ -41,7 +41,7 @@ wallboxAPI.prototype={
 					url: `/signin`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Basic '+b64encoded,
+						'Authorization': `Basic ${b64encoded}`,
 						'Origin':'https://my.wallbox.com',
 						'Partner':'wallbox',
 						'Referer':'https://my.wallbox.com/'
@@ -66,7 +66,7 @@ wallboxAPI.prototype={
 					url: `/v4/users/${id}/id`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 						},
 					responseType: 'json'
 			}).catch(err=>{
@@ -88,7 +88,7 @@ wallboxAPI.prototype={
 					url: `/v2/user/${userId}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -110,7 +110,7 @@ wallboxAPI.prototype={
 					url: `/v3/chargers/groups`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -132,7 +132,7 @@ wallboxAPI.prototype={
 					url: `/chargers/status/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -154,7 +154,7 @@ wallboxAPI.prototype={
 					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -176,7 +176,7 @@ wallboxAPI.prototype={
 					url: `/chargers/config/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -189,6 +189,28 @@ wallboxAPI.prototype={
 		}catch(err) {this.log.error('Error retrieving charger config %s', err)}
 	},
 
+	getLastSession: async function(token,chargerId){
+		try {
+			this.log.debug('Retrieving charger session')
+			let response = await axios({
+					method: 'get',
+					baseURL:endpoint,
+					url: `v4/charger-last-sessions`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`
+					},
+					responseType: 'json'
+			}).catch(err=>{
+				this.log.debug(JSON.stringify(err,null,2))
+				this.log.error('Error getting charger session %s', err.message)
+				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+			})
+			if(response){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
+			return response
+		}catch(err) {this.log.error('Error retrieving charger session %s', err)}
+	},
+
 	lock: async function(token,chargerId,value){
 		try {
 			this.log.debug('Setting charger lock state for %s to %s',chargerId,value)
@@ -198,7 +220,7 @@ wallboxAPI.prototype={
 					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					data:{
 						"locked": value
@@ -223,7 +245,7 @@ wallboxAPI.prototype={
 					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					data:{
 						"maxChargingCurrent": value
@@ -259,7 +281,7 @@ wallboxAPI.prototype={
 					url: `/v3/chargers/${chargerId}/remote-action`,
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': 'Bearer '+token
+						'Authorization': `Bearer ${token}`
 					},
 					data:{
 						"action": action
