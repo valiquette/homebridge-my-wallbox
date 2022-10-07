@@ -4,7 +4,7 @@
 Update
 - Refactored startup code.
 - Fixed bug refreshing token after API changeed ttl from 15 days to 15 mins
--	Added some retry logic if netowrk is down during a restart
+-	Added some retry logic if network is down during a restart
 - Code cleanup.
 
 ## 1.1.0
