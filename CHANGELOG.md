@@ -3,17 +3,17 @@
 ## 1.1.1
 Update
 - Refactored startup code.
-- Fixed bug refreshing token after API changeed ttl from 15 days to 15 mins
+- Fixed bug refreshing token after API changed ttl from 15 days to 15 mins
 -	Added some retry logic if network is down during a restart
 - Code cleanup.
 
 ## 1.1.0
 Update
-- Changed API endpoint for staus updates.
+- Changed API endpoint for status updates.
 -	Refactored code for status updates.
 - Added support for additional status messages.
 - Refactored code for battery status
--	Added status descriptions to logging after being dropped from API reponse.
+-	Added status descriptions to logging after being dropped from API response.
 - Bumped dependencies.
 -	Code cleanup.
 - Updated Readme
@@ -47,7 +47,7 @@ Test
 
 ## 1.0.10
 Fix
--	Fix bug preventing sucessfull start with default settings.
+-	Fix bug preventing sucessful start with default settings.
 
 ## 1.0.9
 Update
