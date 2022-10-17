@@ -168,7 +168,7 @@ class wallboxPlatform {
 		}
 	}
 
-	setTokenRefresh(ttl){ //stooped calling on start due to token ttl change
+	setTokenRefresh(ttl){ //stopped calling on start due to token ttl changes
 			if(ttl>3600000){
 				setInterval(async()=>{
 					try{
@@ -177,7 +177,7 @@ class wallboxPlatform {
 						this.token=signin.data.data.attributes.token
 						this.log.info('Token has been refreshed')
 					}catch(err){this.log.error('Failed to refresh token', err)}
-				},ttl) // ~15 day ttl -1 hour now 15 mins
+				},ttl) // ~was 15 days then 15 mins now 1 day
 			}
 			else{
 				this.log.warn('Unable to set refresh token interval')

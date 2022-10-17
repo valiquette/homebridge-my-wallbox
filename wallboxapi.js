@@ -19,7 +19,7 @@ wallboxAPI.prototype={
 					url: `/emails/${email}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -44,7 +44,7 @@ wallboxAPI.prototype={
 						'Content-Type': 'application/json',
 						'Authorization': `Basic ${b64encoded}`,
 						'Partner': 'wallbox',
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -67,7 +67,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 						},
 					responseType: 'json'
 			}).catch(err=>{
@@ -90,7 +90,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -113,7 +113,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -136,7 +136,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -159,7 +159,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -182,7 +182,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -205,7 +205,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -228,7 +228,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					data:{
 						"locked": value
@@ -254,7 +254,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					data:{
 						"maxChargingCurrent": value
@@ -291,7 +291,7 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': PluginName
+						'User-Agent': `${PluginName}/${PluginVersion}`
 					},
 					data:{
 						"action": action
