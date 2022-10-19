@@ -1,5 +1,13 @@
 # Changes
 
+## 1.1.2
+Update
+- Refactored token refresh logic, ttl is now 24 hours and will refresh when <2% of time is remaing.
+- Will now record count all API calls in debug log for reporting period.
+-	Added explict user-agent info to API calls.
+-	Bumped dependencies.
+- Code cleanup.
+
 ## 1.1.1
 Update
 - Refactored startup code.

@@ -1,4 +1,3 @@
-let packageJson=require('../package.json')
 let wallboxAPI=require('../wallboxapi')
 let enumeration=require('../enumerations')
 

@@ -1,5 +1,5 @@
-let packageJson=require('../package.json')
 let wallboxAPI=require('../wallboxapi')
+let packageJson=require('../package.json')
 
 function lockMechanism (platform,log){
 	this.log=log
