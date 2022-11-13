@@ -2,8 +2,8 @@
 
 ## 1.1.3
 Update
-- Code Cleanup
-- Temperature Service for Battery percentage to create HomeKit automations. (HomeKit doesn't allow for automations off of battery percentage)
+- Code cleanup
+- Option to add Humidity Sensor for Battery percentage to create HomeKit automations. (HomeKit doesn't allow for automations off of battery percentage)
 - Bumped dependencies.
 
 ## 1.1.2

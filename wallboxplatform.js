@@ -2,7 +2,7 @@
 let wallboxAPI=require('./wallboxapi')
 let lockMechanism=require('./devices/lock')
 let battery=require('./devices/battery')
-let temperature=require('./devices/temperature')
+////let temperature=require('./devices/temperature')
 let sensor=require('./devices/sensor')
 let basicSwitch=require('./devices/switch')
 let outlet=require('./devices/outlet')
@@ -15,7 +15,7 @@ class wallboxPlatform {
     this.wallboxapi=new wallboxAPI(this ,log)
 		this.lockMechanism=new lockMechanism(this, log)
 		this.battery=new battery(this, log)
-    this.temperature=new temperature(this, log)
+    ////this.temperature=new temperature(this, log)
 		this.sensor=new sensor(this, log)
 		this.basicSwitch=new basicSwitch(this, log, config)
 		this.outlet=new outlet(this, log, config)
@@ -35,7 +35,7 @@ class wallboxPlatform {
 		this.apiCount=0
 		this.liveUpdate=false
 		this.showBattery=config.cars ? true : false
-    this.showTemperature=config.tempSensor ? config.tempSensor : false
+    ////this.showTemperature=config.tempSensor ? config.tempSensor : false
 		this.showSensor=config.socSensor ? config.socSensor : false
 		this.showControls=config.showControls
 		this.useFahrenheit=config.useFahrenheit || true
@@ -128,15 +128,15 @@ class wallboxPlatform {
 
 					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
 					let lockService=this.lockMechanism.createLockService(chargerData)
-          let temperatureService=this.temperature.createTemperatureService(chargerData)
+          //let temperatureService=this.temperature.createTemperatureService(chargerData)
 					this.lockMechanism.configureLockService(chargerData, lockService)
 					lockAccessory.addService(lockService)
 
-					if(this.showTemperature){
+					/*if(this.showTemperature){
             this.temperature.configureTemperatureService(temperatureService,this.stateOfCharge)
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(temperatureService)
             lockAccessory.addService(temperatureService)
-          }
+          }*////
 					if(this.showSensor){
 						let sensorService=this.sensor.createSensorService(chargerData)
 						this.sensor.configureSensorService(sensorService)
@@ -281,13 +281,13 @@ class wallboxPlatform {
 			let statusInfo
 			lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerID)
 			if(this.showBattery){batteryService=lockAccessory.getServiceById(Service.Battery, chargerID)}
-			if(this.showTemperature){sensorService=lockAccessory.getServiceById(Service.HumiditySensor, chargerID)}
+			if(this.showSensor){sensorService=lockAccessory.getServiceById(Service.HumiditySensor, chargerID)}
 			if(this.showControls==5 || this.showControls==4){outletService=lockAccessory.getServiceById(Service.Outlet, chargerID)}
 			if(this.showControls==3 || this.showControls==4){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerID)}
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerID)}
-      let temperatureService=lockAccessory.getServiceById(Service.TemperatureSensor, chargerID)
+      ////let temperatureService=lockAccessory.getServiceById(Service.TemperatureSensor, chargerID)
       let batteryPercent=this.calcBattery(batteryService,added_kWh,chargingTime)
-      let tempPercentage=this.useFahrenheit ? (batteryPercent-32+.01)*5/9 : batteryPercent
+      ////let tempPercentage=this.useFahrenheit ? (batteryPercent-32+.01)*5/9 : batteryPercent
 
 			/****
 			enumerations will contain list of known status and descriptions
@@ -331,7 +331,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
-          this.temperature.updateTemperatureService(temperatureService, tempPercentage)
+          ////this.temperature.updateTemperatureService(temperatureService, tempPercentage)
 					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					break
 				case 'chargingMode':
@@ -357,7 +357,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
-          this.temperature.updateTemperatureService(temperatureService, tempPercentage)
+          ////this.temperature.updateTemperatureService(temperatureService, tempPercentage)
 					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					break
 				case 'standbyMode':
@@ -383,7 +383,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
-          this.temperature.updateTemperatureService(temperatureService, tempPercentage)
+          ////this.temperature.updateTemperatureService(temperatureService, tempPercentage)
 					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					if(statusID==4){
 						this.log.info('%s completed at %s',chargerName, new Date().toLocaleString())

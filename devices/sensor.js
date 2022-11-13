@@ -13,7 +13,7 @@ sensor.prototype={
 		let stateOfCharge=0
 		if(device.stateOfCharge)(stateOfCharge=device.stateOfCharge)
 
-		this.log.debug("Create sensor for %s",device.name )
+		this.log.debug("create sensor service for %s",device.name )
 		humiditySensor = new Service.HumiditySensor(device.name+' SOC', device.id)
 
     humiditySensor
@@ -22,7 +22,7 @@ sensor.prototype={
   },
 
   configureSensorService(batteryStatus){
-    this.log.debug("configured sensor for %s",batteryStatus.getCharacteristic(Characteristic.Name).value)
+    this.log.debug("configured sensor service for %s",batteryStatus.getCharacteristic(Characteristic.Name).value)
     batteryStatus
 			.getCharacteristic(Characteristic.CurrentRelativeHumidity)
   },
