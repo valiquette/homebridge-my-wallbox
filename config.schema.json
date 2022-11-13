@@ -96,7 +96,7 @@
 				"type": "integer",
 				"required": true,
 				"default": 0,
-				"description": "Select the controls to display in Homkit.",
+				"description": "Select the controls to display in HomeKit.",
 				"oneOf": [
 					{
 						"title": "Lock Only",
@@ -119,6 +119,13 @@
 						"enum": [7]
 					}
 				]
+			},
+			"tempService": {
+				"title": "Create a Temperature Service",
+				"type": "boolean",
+				"required": false,
+				"default": false,
+				"description": "Do you want to create a Temperature Service for Automations?"
 			}
 		}
 	},
@@ -176,6 +183,13 @@
 			"flex-flow": "row wrap",
 			"items": [
 				"showControls"
+			]
+		},
+		{
+			"type": "flex",
+			"flex-flow": "row wrap",
+			"items": [
+				"tempService"
 			]
 		},
 		{

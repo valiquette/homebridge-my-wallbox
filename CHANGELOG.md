@@ -1,10 +1,15 @@
 # Changes
 
+## 1.1.3
+Update
+- Code Cleanup
+- Temperature Service for Battery percentage to create HomeKit automations. (HomeKit doesn't allow for automations off of battery percentage)
+
 ## 1.1.2
 Update
-- Refactored token refresh logic, ttl is now 24 hours and will refresh when <2% of time is remaing.
+- Refactored token refresh logic, ttl is now 24 hours and will refresh when <2% of time is remaining.
 - Will now record count all API calls in debug log for reporting period.
--	Added explict user-agent info to API calls.
+-	Added explicit user-agent info to API calls.
 -	Bumped dependencies.
 - Code cleanup.
 
@@ -26,7 +31,7 @@ Update
 -	Code cleanup.
 - Updated Readme
 - Fixed some typos in logging output.
-- Bug fixes for some error handeling.
+- Bug fixes for some error handling.
 
 ## 1.0.14
 Update
@@ -55,7 +60,7 @@ Test
 
 ## 1.0.10
 Fix
--	Fix bug preventing sucessful start with default settings.
+-	Fix bug preventing successful start with default settings.
 
 ## 1.0.9
 Update
@@ -104,5 +109,3 @@ Fix
 ## 1.0.1
 Initial
 - HomeKit support for Wallbox Charger locking.
-
-

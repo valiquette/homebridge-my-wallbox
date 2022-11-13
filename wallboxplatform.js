@@ -2,6 +2,7 @@
 let wallboxAPI=require('./wallboxapi')
 let lockMechanism=require('./devices/lock')
 let battery=require('./devices/battery')
+let temperature=require('./devices/temperature')
 let basicSwitch=require('./devices/switch')
 let outlet=require('./devices/outlet')
 let control=require('./devices/control')
@@ -13,6 +14,7 @@ class wallboxPlatform {
     this.wallboxapi=new wallboxAPI(this ,log)
 		this.lockMechanism=new lockMechanism(this, log)
 		this.battery=new battery(this, log)
+    this.temperature=new temperature(this, log)
 		this.basicSwitch=new basicSwitch(this, log, config)
 		this.outlet=new outlet(this, log, config)
 		this.control=new control(this, log, config)
@@ -30,7 +32,8 @@ class wallboxPlatform {
 		this.lastInterval
 		this.apiCount=0
 		this.liveUpdate=false
-		this.showBattery=false
+		this.showBattery=config.cars ? true : false
+    this.showTemperature=config.tempService ? config.tempService : false
 		this.showControls=config.showControls
 		this.useFahrenheit=config.useFahrenheit || true
 		this.id
@@ -45,7 +48,6 @@ class wallboxPlatform {
 			this.showControls=4
 			this.useFahrenheit=false
 		}
-		if(config.cars){this.showBattery=true}
     if(!config.email || !config.password){
       this.log.error('Valid email and password are required in order to communicate with wallbox, please check the plugin config')
     }
@@ -123,6 +125,11 @@ class wallboxPlatform {
 
 					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
 					let lockService=this.lockMechanism.createLockService(chargerData)
+          let temperatureService=this.temperature.createTemperatureService(chargerData)
+          if(this.showTemperature){
+            this.temperature.configureTemperatureService(temperatureService,this.stateOfCharge)
+            lockAccessory.addService(temperatureService)
+          }
 					this.lockMechanism.configureLockService(chargerData, lockService)
 					lockAccessory.addService(lockService)
 
@@ -212,9 +219,14 @@ class wallboxPlatform {
 	}
 
 	calcBattery(batteryService,energyAdded,chargingTime){
+    let wallboxChargerName=batteryService.getCharacteristic(Characteristic.Name).value
 		if(this.cars){
-			let car=this.cars.filter(charger=>(charger.chargerName.includes(batteryService.getCharacteristic(Characteristic.Name).value)))
-			this.batterySize=car[0].kwH
+			let car=this.cars.filter(charger=>(charger.chargerName.includes(wallboxChargerName)))
+      if(car[0]){
+        this.batterySize=car[0].kwH
+      }else {
+        this.log.warn('Unable to find charger named (%s) as configured in settings.', wallboxChargerName)
+      }
 		}
 		else{
 			this.batterySize=80
@@ -261,6 +273,9 @@ class wallboxPlatform {
 			if(this.showControls==5 || this.showControls==4){outletService=lockAccessory.getServiceById(Service.Outlet, chargerID)}
 			if(this.showControls==3 || this.showControls==4){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerID)}
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerID)}
+      let temperatureService=lockAccessory.getServiceById(Service.TemperatureSensor, chargerID)
+      let batteryPercent=this.calcBattery(batteryService,added_kWh,chargingTime)
+      let tempPercentage=(batteryPercent-32+.01)*5/9
 
 			/****
 			enumerations will contain list of known status and descriptions
@@ -304,6 +319,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
+          this.temperature.updateTemperatureService(temperatureService, tempPercentage)
 					break
 				case 'chargingMode':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -328,6 +344,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
+          this.temperature.updateTemperatureService(temperatureService, tempPercentage)
 					break
 				case 'standbyMode':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -352,6 +369,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
+          this.temperature.updateTemperatureService(temperatureService, tempPercentage)
 					if(statusID==4){
 						this.log.info('%s completed at %s',chargerName, new Date().toLocaleString())
 					}
