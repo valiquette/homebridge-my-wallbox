@@ -138,8 +138,8 @@ class wallboxPlatform {
             lockAccessory.addService(temperatureService)
           }*////
 					if(this.showSensor){
-						let sensorService=this.sensor.createSensorService(chargerData)
-						this.sensor.configureSensorService(sensorService)
+						let sensorService=this.sensor.createSensorService(chargerData,'SOC')
+						this.sensor.configureSensorService(chargerData,sensorService)
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(sensorService)
 						lockAccessory.addService(sensorService)
 					}
@@ -157,7 +157,7 @@ class wallboxPlatform {
 						lockAccessory.addService(outletService)
 					}
 					if(this.showControls==3 || this.showControls==4){
-						let controlService=this.control.createControlService(chargerData,'Amps')
+						let controlService=this.control.createControlService(chargerData,'Charging Amps')
 						this.control.configureControlService(chargerData, controlService)
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
 						lockAccessory.addService(controlService)

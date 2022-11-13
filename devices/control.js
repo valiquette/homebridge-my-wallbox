@@ -19,9 +19,9 @@ control.prototype={
 		else{
 			currentAmps=device.maxAvailableCurrent
 		}
-		let controlService=new Service.Thermostat(type, device.id)
+		let controlService=new Service.Thermostat(name, device.id)
     controlService
-      .setCharacteristic(Characteristic.Name, type)
+      .setCharacteristic(Characteristic.Name, device.name+' '+type)
       .setCharacteristic(Characteristic.StatusFault,Characteristic.StatusFault.NO_FAULT)
 			.setCharacteristic(Characteristic.TargetTemperature, currentAmps)
 			.setCharacteristic(Characteristic.CurrentTemperature, currentAmps)
