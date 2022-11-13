@@ -3,6 +3,7 @@ let wallboxAPI=require('./wallboxapi')
 let lockMechanism=require('./devices/lock')
 let battery=require('./devices/battery')
 let temperature=require('./devices/temperature')
+let sensor=require('./devices/sensor')
 let basicSwitch=require('./devices/switch')
 let outlet=require('./devices/outlet')
 let control=require('./devices/control')
@@ -15,6 +16,7 @@ class wallboxPlatform {
 		this.lockMechanism=new lockMechanism(this, log)
 		this.battery=new battery(this, log)
     this.temperature=new temperature(this, log)
+		this.sensor=new sensor(this, log)
 		this.basicSwitch=new basicSwitch(this, log, config)
 		this.outlet=new outlet(this, log, config)
 		this.control=new control(this, log, config)
@@ -34,6 +36,7 @@ class wallboxPlatform {
 		this.liveUpdate=false
 		this.showBattery=config.cars ? true : false
     this.showTemperature=config.tempSensor ? config.tempSensor : false
+		this.showSensor=config.socSensor ? config.socSensor : false
 		this.showControls=config.showControls
 		this.useFahrenheit=config.useFahrenheit || true
 		this.id
@@ -134,7 +137,12 @@ class wallboxPlatform {
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(temperatureService)
             lockAccessory.addService(temperatureService)
           }
-
+					if(this.showSensor){
+						let sensorService=this.sensor.createSensorService(chargerData)
+						this.sensor.configureSensorService(sensorService)
+						lockAccessory.getService(Service.LockMechanism).addLinkedService(sensorService)
+						lockAccessory.addService(sensorService)
+					}
 					if(this.showBattery){
 						let batteryService=this.battery.createBatteryService(chargerData)
 						this.battery.configureBatteryService(batteryService)
@@ -269,9 +277,11 @@ class wallboxPlatform {
 			let outletService
 			let lockService
 			let batteryService
+			let sensorService
 			let statusInfo
 			lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerID)
 			if(this.showBattery){batteryService=lockAccessory.getServiceById(Service.Battery, chargerID)}
+			if(this.showTemperature){sensorService=lockAccessory.getServiceById(Service.HumiditySensor, chargerID)}
 			if(this.showControls==5 || this.showControls==4){outletService=lockAccessory.getServiceById(Service.Outlet, chargerID)}
 			if(this.showControls==3 || this.showControls==4){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerID)}
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerID)}
@@ -322,6 +332,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
           this.temperature.updateTemperatureService(temperatureService, tempPercentage)
+					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					break
 				case 'chargingMode':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -347,6 +358,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
           this.temperature.updateTemperatureService(temperatureService, tempPercentage)
+					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					break
 				case 'standbyMode':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -372,6 +384,7 @@ class wallboxPlatform {
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
 					}
           this.temperature.updateTemperatureService(temperatureService, tempPercentage)
+					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					if(statusID==4){
 						this.log.info('%s completed at %s',chargerName, new Date().toLocaleString())
 					}
