@@ -275,7 +275,7 @@ class wallboxPlatform {
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerID)}
       let temperatureService=lockAccessory.getServiceById(Service.TemperatureSensor, chargerID)
       let batteryPercent=this.calcBattery(batteryService,added_kWh,chargingTime)
-      let tempPercentage=(batteryPercent-32+.01)*5/9
+      let tempPercentage=this.useFahrenheit ? (batteryPercent-32+.01)*5/9 : batteryPercent
 
 			/****
 			enumerations will contain list of known status and descriptions
