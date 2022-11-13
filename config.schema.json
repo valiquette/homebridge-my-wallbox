@@ -34,7 +34,7 @@
 				"maximum": 24,
 				"required": true,
 				"default": 24
-			},	
+			},
 			"liveRefreshTimeout": {
 				"title": "Live Timeout",
 				"description": "Live polling duration in minutes. Default 2",
@@ -120,12 +120,12 @@
 					}
 				]
 			},
-			"tempService": {
-				"title": "Create a Temperature Service",
+			"tempSensor": {
+				"title": "Create a Temperature Sensor",
 				"type": "boolean",
 				"required": false,
 				"default": false,
-				"description": "Do you want to create a Temperature Service for Automations?"
+				"description": "Do you want to create a Temperature Sensor for Automations?"
 			}
 		}
 	},
@@ -189,7 +189,7 @@
 			"type": "flex",
 			"flex-flow": "row wrap",
 			"items": [
-				"tempService"
+				"tempSensor"
 			]
 		},
 		{

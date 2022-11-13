@@ -33,7 +33,7 @@ class wallboxPlatform {
 		this.apiCount=0
 		this.liveUpdate=false
 		this.showBattery=config.cars ? true : false
-    this.showTemperature=config.tempService ? config.tempService : false
+    this.showTemperature=config.tempSensor ? config.tempSensor : false
 		this.showControls=config.showControls
 		this.useFahrenheit=config.useFahrenheit || true
 		this.id
@@ -126,12 +126,14 @@ class wallboxPlatform {
 					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
 					let lockService=this.lockMechanism.createLockService(chargerData)
           let temperatureService=this.temperature.createTemperatureService(chargerData)
-          if(this.showTemperature){
-            this.temperature.configureTemperatureService(temperatureService,this.stateOfCharge)
-            lockAccessory.addService(temperatureService)
-          }
 					this.lockMechanism.configureLockService(chargerData, lockService)
 					lockAccessory.addService(lockService)
+
+					if(this.showTemperature){
+            this.temperature.configureTemperatureService(temperatureService,this.stateOfCharge)
+						lockAccessory.getService(Service.LockMechanism).addLinkedService(temperatureService)
+            lockAccessory.addService(temperatureService)
+          }
 
 					if(this.showBattery){
 						let batteryService=this.battery.createBatteryService(chargerData)
