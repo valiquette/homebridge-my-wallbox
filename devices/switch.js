@@ -11,7 +11,8 @@ function basicSwitch (platform,log,config){
 basicSwitch.prototype={
 
   createSwitchService(device, type){
-    this.log.debug('adding new switch')
+		this.log.info('Adding switch for %s charger ', device.name)
+    this.log.debug('create new switch')
 		let switchService=new Service.Switch(type, device.id)
 		let switchOn=false
 		if(device.statusDescription=="Charging"){switchOn=true}
@@ -23,7 +24,7 @@ basicSwitch.prototype={
   },
 
   configureSwitchService(device, switchService){
-    this.log.info("Configured %s switch for %s" , switchService.getCharacteristic(Characteristic.Name).value, device.name)
+    this.log.debug("configured %s switch for %s" , switchService.getCharacteristic(Characteristic.Name).value, device.name)
     switchService
       .getCharacteristic(Characteristic.On)
       .on('get', this.getSwitchValue.bind(this, switchService))
