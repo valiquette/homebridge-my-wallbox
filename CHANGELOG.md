@@ -3,6 +3,7 @@
 ## 1.1.3
 Update
 - Code cleanup
+- Cleanup log messaging.
 - Option to add Humidity Sensor for Battery percentage to create HomeKit automations. (HomeKit doesn't allow for automations off of battery percentage)
 - Bumped dependencies.
 

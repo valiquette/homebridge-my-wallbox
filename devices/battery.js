@@ -9,10 +9,11 @@ function battery (platform,log){
 battery.prototype={
 
   createBatteryService(device){
+		this.log.info('Adding battery service for %s charger ', device.name)
+		this.log.debug("create battery service for %s", device.name)
 		let batteryStatus
 		let stateOfCharge=0
-		if(device.stateOfCharge)(stateOfCharge=device.stateOfCharge)
-		this.log.debug("create battery service for %s",device.name )
+		if(device.stateOfCharge){stateOfCharge=device.stateOfCharge}
 		batteryStatus=new Service.Battery(device.name, device.id)
     batteryStatus
 			.setCharacteristic(Characteristic.StatusLowBattery,Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL)

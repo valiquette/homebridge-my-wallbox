@@ -11,7 +11,8 @@ function control (platform,log,config){
 control.prototype={
 
   createControlService(device, type){
-    this.log.debug('adding new control')
+		this.log.info('Adding amperage control for %s charger ', device.name)
+		this.log.debug('create new control')
 		let currentAmps
 		if(this.platform.useFahrenheit){
 		currentAmps=((device.maxAvailableCurrent-32+.01)*5/9).toFixed(2)
@@ -19,7 +20,7 @@ control.prototype={
 		else{
 			currentAmps=device.maxAvailableCurrent
 		}
-		let controlService=new Service.Thermostat(name, device.id)
+		let controlService=new Service.Thermostat(type, device.id)
     controlService
       .setCharacteristic(Characteristic.Name, device.name+' '+type)
       .setCharacteristic(Characteristic.StatusFault,Characteristic.StatusFault.NO_FAULT)
@@ -48,7 +49,7 @@ control.prototype={
 			if(device.maxAvailableCurrent==48){max=48}
 		}
 
-    this.log.info("Configured %s control for %s" , controlService.getCharacteristic(Characteristic.Name).value, device.name)
+    this.log.debug("configured %s control for %s" , controlService.getCharacteristic(Characteristic.Name).value, device.name)
 		controlService
       .getCharacteristic(Characteristic.TargetHeatingCoolingState)
 			.setProps({

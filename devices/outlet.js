@@ -11,7 +11,8 @@ function basicOutlet (platform,log,config){
 basicOutlet.prototype={
 
   createOutletService(device, type){
-    this.log.debug('adding new outlet')
+		this.log.info('Adding outlet for %s charger ', device.name)
+    this.log.debug('create new outlet')
 		let outletService=new Service.Outlet(type, device.id)
 		let outletOn=false
 		if(device.statusDescription=="Charging"){outletOn=true}
@@ -23,7 +24,7 @@ basicOutlet.prototype={
   },
 
   configureOutletService(device, outletService){
-    this.log.info("Configured %s outlet for %s" , outletService.getCharacteristic(Characteristic.Name).value, device.name)
+    this.log.debug("configured %s outlet for %s" , outletService.getCharacteristic(Characteristic.Name).value, device.name)
     outletService
       .getCharacteristic(Characteristic.On)
       .on('get', this.getOutletValue.bind(this, outletService))

@@ -9,13 +9,12 @@ function sensor (platform,log){
 sensor.prototype={
 
   createSensorService(device, type){
-		let humiditySensor
+		this.log.info('Adding sensor for %s charger ', device.name)
+		this.log.debug("create new sensor")
+		let humiditySensor = new Service.HumiditySensor(type, device.id)
 		let stateOfCharge=0
 		if(device.stateOfCharge)(stateOfCharge=device.stateOfCharge)
-
-		this.log.debug("create sensor service for %s",device.name )
-		humiditySensor = new Service.HumiditySensor(name, device.id)
-
+		humiditySensor = new Service.HumiditySensor(type, device.id)
     humiditySensor
 			.setCharacteristic(Characteristic.Name, device.name+' '+type)
 			.setCharacteristic(Characteristic.CurrentRelativeHumidity, stateOfCharge)
@@ -23,7 +22,7 @@ sensor.prototype={
   },
 
   configureSensorService(device,sensorStatus){
-    this.log.info("Configured %s sensor for %s",sensorStatus.getCharacteristic(Characteristic.Name).value, device.name)
+    this.log.debug("configured %s sensor for %s",sensorStatus.getCharacteristic(Characteristic.Name).value, device.name)
     sensorStatus
 			.getCharacteristic(Characteristic.CurrentRelativeHumidity)
   },
