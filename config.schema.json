@@ -120,12 +120,12 @@
 					}
 				]
 			},
-			"tempSensor": {
-				"title": "Create a Temperature Sensor",
+			"socSensor": {
+				"title": "State of Charge Sensor",
 				"type": "boolean",
 				"required": false,
 				"default": false,
-				"description": "Do you want to create a Temperature Sensor for Automations?"
+				"description": "Do you want to create a Humidity Sensor for automations based on battery level?"
 			}
 		}
 	},
@@ -189,7 +189,7 @@
 			"type": "flex",
 			"flex-flow": "row wrap",
 			"items": [
-				"tempSensor"
+				"socSensor"
 			]
 		},
 		{
