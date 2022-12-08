@@ -20,7 +20,8 @@ wallboxAPI.prototype={
 					url: `/emails/${email}`,
 					headers: {
 						'Content-Type': 'application/json',
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -46,7 +47,8 @@ wallboxAPI.prototype={
 						'Content-Type': 'application/json',
 						'Authorization': `Basic ${b64encoded}`,
 						'Partner': 'wallbox',
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -70,7 +72,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 						},
 					responseType: 'json'
 			}).catch(err=>{
@@ -94,7 +97,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -118,7 +122,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -142,7 +147,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -166,7 +172,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -190,7 +197,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -214,7 +222,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
 					},
 					responseType: 'json'
 			}).catch(err=>{
@@ -238,7 +247,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,br'
 					},
 					data:{
 						"locked": value
@@ -265,7 +275,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,br'
 					},
 					data:{
 						"maxChargingCurrent": value
@@ -303,7 +314,8 @@ wallboxAPI.prototype={
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,br'
 					},
 					data:{
 						"action": action
