@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.4
+Update
+- Bumped dependencies.
+
 ## 1.1.3
 Update
 - Code cleanup
