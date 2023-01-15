@@ -11,7 +11,7 @@ let enumeration=require('./enumerations')
 class wallboxPlatform {
 
   constructor(log, config, api){
-    this.wallboxapi=new wallboxAPI(this ,log)
+    this.wallboxapi=new wallboxAPI(this, log)
 		this.lockMechanism=new lockMechanism(this, log)
 		this.battery=new battery(this, log)
 		this.sensor=new sensor(this, log)
@@ -96,9 +96,9 @@ class wallboxPlatform {
 				})
 			})
 			//get user
-			let user=await this.wallboxapi.getUser(this.token,this.userId).catch(err=>{this.log.error('Failed to get user for build', err)})
-			this.log.info('Found account for %s %s', user.data.data.name, user.data.data.surname)
-			user.data.data.accessConfigs.filter((accessConfig)=>{
+			let user=(await this.wallboxapi.getUser(this.token,this.userId).catch(err=>{this.log.error('Failed to get user for build', err)})).data
+			this.log.info('Found account for %s %s', user.data.name, user.data.surname)
+			user.data.accessConfigs.filter((accessConfig)=>{
 				groups.data.result.groups.forEach((group)=>{
 				if(!this.locationName || (this.locationName==group.name && accessConfig.group==group.id)){
 					this.log.info('Found device at the location: %s',group.name)
@@ -113,16 +113,16 @@ class wallboxPlatform {
 			}).forEach((accessConfig)=>{
 				accessConfig.chargers.forEach(async(charger)=>{
 					//loop each charger
-					let chargerDataResponse=await this.wallboxapi.getChargerData(this.token,charger).catch(err=>{this.log.error('Failed to get charger configs for build', err)})
-					let chargerData=chargerDataResponse.data.data.chargerData
+					let chargerData=(await this.wallboxapi.getChargerData(this.token,charger).catch(err=>{this.log.error('Failed to get charger configs for build', err)})).data.data.chargerData
 					let uuid=UUIDGen.generate(chargerData.uid)
+					let chargerConfig=(await this.wallboxapi.getChargerConfig(this.token,charger).catch(err=>{this.log.error(err)})).data
 					if(this.accessories[uuid]){
 						this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
 						delete this.accessories[uuid]
 					}
 					this.log.debug('Registering platform accessory')
 
-					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,uuid)
+					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,chargerConfig,uuid)
 					let lockService=this.lockMechanism.createLockService(chargerData)
 					this.lockMechanism.configureLockService(chargerData, lockService)
 					lockAccessory.addService(lockService)
@@ -164,7 +164,7 @@ class wallboxPlatform {
 					this.getStatus(chargerData.id)
 				})
 			})
-			setTimeout(()=>{this.log.info('Wallbox platform finished loading')}, 500)
+			setTimeout(()=>{this.log.info('Wallbox platform finished loading')}, 1500)
 		}catch(err){
 			this.log.error('Failed to get devices...%s \nRetrying in %s seconds...', err,this.retryWait)
 			setTimeout(async()=>{
@@ -195,6 +195,10 @@ class wallboxPlatform {
 				this.log('API calls for this polling period %s',this.apiCount)
 				this.apiCount=0
 				this.getStatus(device.id)
+				let checkUpdate=(await this.wallboxapi.getChargerConfig(this.token,device.id).catch(err=>{this.log.error(err)})).data
+				if(checkUpdate.software.updateAvailable){
+					this.log.warn('%s software update %s is available',checkUpdate.name, checkUpdate.software.latestVersion)
+				}
 			}, this.refreshRate*60*60*1000)
 		}
 
@@ -220,17 +224,18 @@ class wallboxPlatform {
 
 	calcBattery(batteryService,energyAdded,chargingTime){
     let wallboxChargerName=batteryService.getCharacteristic(Characteristic.Name).value
-		if(this.cars){
-			let car=this.cars.filter(charger=>(charger.chargerName.includes(wallboxChargerName)))
-      if(car[0]){
-        this.batterySize=car[0].kwH
-      }else {
-        this.log.warn('Unable to find charger named (%s) as configured in settings.', wallboxChargerName)
-      }
-		}
-		else{
-			this.batterySize=80
-		}
+		try{
+			if(this.cars){
+				let car=this.cars.filter(charger=>(charger.chargerName==wallboxChargerName))
+				if(car[0]){
+					this.batterySize=car[0].kwH
+				}else {
+					this.log.warn('Unable to find charger named "%s" as configured in the plugin settings for car "%s" with charger "%s". Please check your plugin settings.', wallboxChargerName, this.cars[0].carName, this.cars[0].chargerName)
+				}
+			}
+		}catch(err) {this.log.error('Error with config %s', JSON.stringify(this.cars,null,2))}
+
+		if(!this.batterySize){this.batterySize=80}
 		let hours = Math.floor(chargingTime / 60 / 60)
 		let minutes = Math.floor(chargingTime / 60) - (hours * 60)
 		let seconds = chargingTime % 60
@@ -269,13 +274,16 @@ class wallboxPlatform {
 			let batteryService
 			let sensorService
 			let statusInfo
+			let batteryPercent
 			lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerID)
-			if(this.showBattery){batteryService=lockAccessory.getServiceById(Service.Battery, chargerID)}
-			if(this.showSensor){sensorService=lockAccessory.getServiceById(Service.HumiditySensor, chargerID)}
+			if(this.showBattery){
+				batteryService=lockAccessory.getServiceById(Service.Battery, chargerID)
+				batteryPercent=this.calcBattery(batteryService,added_kWh,chargingTime)
+				if(this.showSensor){sensorService=lockAccessory.getServiceById(Service.HumiditySensor, chargerID)}
+			}
 			if(this.showControls==5 || this.showControls==4){outletService=lockAccessory.getServiceById(Service.Outlet, chargerID)}
 			if(this.showControls==3 || this.showControls==4){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerID)}
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerID)}
-      let batteryPercent=this.calcBattery(batteryService,added_kWh,chargingTime)
 
 			/****
 			enumerations will contain list of known status and descriptions
@@ -318,8 +326,8 @@ class wallboxPlatform {
 					if(this.showBattery){
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
+						if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					}
-					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					break
 				case 'chargingMode':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -343,8 +351,8 @@ class wallboxPlatform {
 					if(this.showBattery){
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
+						if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					}
-					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					break
 				case 'standbyMode':
 					lockService.getCharacteristic(Characteristic.StatusFault).updateValue(Characteristic.StatusFault.NO_FAULT)
@@ -368,8 +376,8 @@ class wallboxPlatform {
 					if(this.showBattery){
 						batteryService.getCharacteristic(Characteristic.ChargingState).updateValue(Characteristic.ChargingState.NOT_CHARGING)
 						batteryService.getCharacteristic(Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService,added_kWh,chargingTime))
+						if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					}
-					if(this.showSensor){sensorService.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent)}
 					if(statusID==4){
 						this.log.info('%s completed at %s',chargerName, new Date().toLocaleString())
 					}

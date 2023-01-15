@@ -1,4 +1,4 @@
-let wallboxAPI=require('homebridge-my-wallbox/wallboxapi')
+let wallboxAPI=require('../wallboxapi')
 
 function sensor (platform,log){
 	this.log=log

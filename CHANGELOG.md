@@ -1,8 +1,16 @@
 # Changes
 
+## 1.1.6
+Fix
+- Fix error handeling during startup when configuration has missing info.
+Update
+-	Improved error handeling for lock.
+- Updated Axios to address error for unexpected end of file error.
+-	Bumped dependencies.
+
 ## 1.1.5
 Update
-- Fix API error for unexpected end of file error
+- Fix Axios error for unexpected end of file error.
 
 ## 1.1.4
 Update
