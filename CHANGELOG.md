@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.7
+Update
+- Code cleanup
+- Bumped dependencies.
+
 ## 1.1.6
 Fix
 - Fix error handeling during startup when configuration has missing info.
