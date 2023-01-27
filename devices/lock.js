@@ -94,9 +94,11 @@ lockMechanism.prototype={
 						switch(response.status){
 							case 200:
 								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
+								//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(lockService.getCharacteristic(Characteristic.LockTargetState).value)
 								break
 							default:
 								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(!response.data.data.chargerData.locked)
+								//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(lockService.getCharacteristic(Characteristic.LockCurrentState).value)
 								this.log.info('Failed to lock WallBox')
 								break
 						}
@@ -114,9 +116,11 @@ lockMechanism.prototype={
 						switch(response.status){
 							case 200:
 								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
+								//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(lockService.getCharacteristic(Characteristic.LockTargetState).value)
 								break
 							default:
 								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(!response.data.data.chargerData.locked)
+								//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(lockService.getCharacteristic(Characteristic.LockCurrentState).value)
 								this.log.info('Failed to unlock WallBox')
 								break
 						}

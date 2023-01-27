@@ -1,8 +1,14 @@
 # Changes
 
+## 1.1.8
+Update
+- Code cleanup.
+-	Improved error handeling.
+- Bumped dependencies.
+
 ## 1.1.7
 Update
-- Code cleanup
+- Code cleanup.
 - Bumped dependencies.
 
 ## 1.1.6
