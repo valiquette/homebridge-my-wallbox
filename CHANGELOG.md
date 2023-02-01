@@ -1,7 +1,10 @@
 # Changes
 
 ## 1.1.8
+Fix
+-	Fixed bug with token refresh (issue #16).
 Update
+- Added option to suppress API responses in debug log.
 - Code cleanup.
 -	Improved error handeling.
 - Bumped dependencies.

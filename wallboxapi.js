@@ -29,7 +29,8 @@ wallboxAPI.prototype={
 				this.log.error('Error checking email %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
+			//if(response.status==200 && this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error checking email %s', err)}
 	},
@@ -56,7 +57,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting token %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
 			return  response
 		}catch(err) {this.log.error('Error retrieving token %s', err)}
 	},
@@ -81,7 +82,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting ID %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving ID %s', err)}
 	},
@@ -106,7 +107,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting user ID %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving user ID %s', err)}
 	},
@@ -131,7 +132,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger groups %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger groups %s', err)}
 	},
@@ -156,7 +157,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger status %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			//if(response){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
+			//if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger status %s', err)}
 	},
@@ -181,7 +182,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger data %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger data %s', err)}
 	},
@@ -206,7 +207,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger config %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger config %s', err)}
 	},
@@ -231,7 +232,7 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger session %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error retrieving charger session %s', err)}
 	},
@@ -259,7 +260,7 @@ wallboxAPI.prototype={
 				this.log.error('Error locking charger config %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('put lock response',response.status)}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('put lock response',response.status)}
 			return response
 		}catch(err) {this.log.error('Error setting lock state config %s', err)}
 	},
@@ -287,8 +288,8 @@ wallboxAPI.prototype={
 				this.log.error('Error setting amperage %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response){this.log.debug('put setAmps response',response.status)}
-			if(response){this.log.debug('put setAmps response {maxChargingCurrent:%s}',JSON.stringify(response.data.data.chargerData.maxChargingCurrent,null,2))}
+			if(response.status && this.platform.showAPIMessages){this.log.debug('put setAmps response status',response.status)}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('put setAmps response {maxChargingCurrent:%s}',JSON.stringify(response.data.data.chargerData.maxChargingCurrent,null,2))}
 			return response
 		}catch(err) {this.log.error('Error setting amperage %s', err)}
 	},
@@ -327,8 +328,8 @@ wallboxAPI.prototype={
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 				return(err.response)
 			})
-			if(response){this.log.debug('post remote action response',response.status)}
-			if(response){this.log.debug('post remote action response',JSON.stringify(response.data,null,2))}
+			if(response.status && this.platform.showAPIMessages){this.log.debug('post remote action response status',response.status)}
+			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('post remote action response',JSON.stringify(response.data,null,2))}
 			return response
 		}catch(err) {this.log.error('Error with remote action %s', err)}
 	},

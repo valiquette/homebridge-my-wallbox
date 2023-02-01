@@ -126,6 +126,13 @@
 				"required": false,
 				"default": false,
 				"description": "Do you want to create a Humidity Sensor for automations based on battery level?"
+			},
+			"showAPIMessages": {
+				"title": "Show API responses",
+				"type": "boolean",
+				"required": false,
+				"default": false,
+				"description": "Do you want to log API response messages?"
 			}
 		}
 	},
@@ -202,6 +209,16 @@
 				"refreshRate",
 				"liveRefreshTimeout",
 				"liveRefreshRate"
+			]
+		},
+		{
+			"type": "fieldset",
+			"title": "Debug logging",
+			"description": "Expand to enable additional debug logging",
+			"expandable": true,
+			"flex-flow": "row wrap",
+			"items": [
+				"showAPIMessages"
 			]
 		}
 	]
