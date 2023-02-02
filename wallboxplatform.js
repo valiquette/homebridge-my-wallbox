@@ -196,10 +196,12 @@ class wallboxPlatform {
 				this.log('API calls for this polling period %s',this.apiCount)
 				this.apiCount=0
 				this.getStatus(device.id)
-				let checkUpdate=(await this.wallboxapi.getChargerConfig(this.token,device.id).catch(err=>{this.log.error(err)})).data
-				if(checkUpdate.software.updateAvailable){
-					this.log.warn('%s software update %s is available',checkUpdate.name, checkUpdate.software.latestVersion)
-				}
+				try{
+					let checkUpdate=(await this.wallboxapi.getChargerConfig(this.token,device.id).catch(err=>{this.log.error(err)})).data //err does not read data need to check
+					if(checkUpdate.software.updateAvailable){
+						this.log.warn('%s software update %s is available',checkUpdate.name, checkUpdate.software.latestVersion)
+					}
+				}catch(err){this.log.error('Error checking for update', err)}
 			}, this.refreshRate*60*60*1000)
 		}
 

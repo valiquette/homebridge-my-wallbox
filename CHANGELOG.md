@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.9
+Fix
+-	Fixed un-caught error.
+
 ## 1.1.8
 Fix
 -	Fixed bug with token refresh (issue #16).
