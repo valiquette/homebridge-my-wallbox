@@ -249,9 +249,9 @@ class wallboxPlatform {
 
 	async	getStatus(id){
 	try{
-		let statusResponse=(await this.wallboxapi.getChargerStatus(this.token,id).catch(err=>{this.log.error(err)})).data
-			if(statusResponse){
-				this.updateStatus(statusResponse)
+		let statusResponse=(await this.wallboxapi.getChargerStatus(this.token,id).catch(err=>{this.log.error(err)}))//.data
+			if(statusResponse.data){
+				this.updateStatus(statusResponse.data)
 			}
 		}catch(err) {this.log.error('Error updating status %s', err)}
 	}

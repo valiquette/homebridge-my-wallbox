@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.10
+Fix
+-	Improved error handling.
+
 ## 1.1.9
 Fix
 -	Fixed un-caught error.
@@ -10,7 +14,7 @@ Fix
 Update
 - Added option to suppress API responses in debug log.
 - Code cleanup.
--	Improved error handeling.
+-	Improved error handling.
 - Bumped dependencies.
 
 ## 1.1.7
@@ -20,9 +24,9 @@ Update
 
 ## 1.1.6
 Fix
-- Fix error handeling during startup when configuration has missing info.
+- Fix error handling during startup when configuration has missing info.
 Update
--	Improved error handeling for lock.
+-	Improved error handling for lock.
 - Updated Axios to address error for unexpected end of file error.
 -	Bumped dependencies.
 

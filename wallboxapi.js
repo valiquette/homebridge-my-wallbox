@@ -155,7 +155,10 @@ wallboxAPI.prototype={
 			}).catch(err=>{
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting charger status %s', err.message)
-				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+				if(err.response){
+					if(err.response.status!=504){this.log.warn(JSON.stringify(err.response.data,null,2))}
+					return (err.response.data)
+				}
 			})
 			//if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
 			return response
