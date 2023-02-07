@@ -2,7 +2,10 @@
 
 ## 1.1.10
 Fix
+-	Fixed bug with token refresh (issue #16).
+Update
 -	Improved error handling.
+- Bumped dependencies.
 
 ## 1.1.9
 Fix

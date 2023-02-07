@@ -29,13 +29,14 @@ wallboxAPI.prototype={
 				this.log.error('Error checking email %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			//if(response.status==200 && this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error checking email %s', err)}
 	},
 
-	signin: async function(email,password){
+	signin: async function(email, password){
 		this.platform.apiCount++
 		let b64encoded=(Buffer.from(email+':'+password,'utf8')).toString('base64')
 		try {
@@ -57,12 +58,14 @@ wallboxAPI.prototype={
 				this.log.error('Error getting token %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
-			return  response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving token %s', err)}
 	},
 
-	getId: async function(token,id){
+	getId: async function(token, id){
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving User ID')
@@ -82,12 +85,14 @@ wallboxAPI.prototype={
 				this.log.error('Error getting ID %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
+			return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving ID %s', err)}
 	},
 
-	getUser: async function(token,userId){
+	getUser: async function(token, userId){
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving user info')
@@ -107,8 +112,10 @@ wallboxAPI.prototype={
 				this.log.error('Error getting user ID %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving user ID %s', err)}
 	},
 
@@ -132,12 +139,14 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger groups %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving charger groups %s', err)}
 	},
 
-	getChargerStatus: async function(token,chargerId){
+	getChargerStatus: async function(token, chargerId){
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger status')
@@ -160,12 +169,14 @@ wallboxAPI.prototype={
 					return (err.response.data)
 				}
 			})
-			//if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving charger status %s', err)}
 	},
 
-	getChargerData: async function(token,chargerId){
+	getChargerData: async function(token, chargerId){
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger data')
@@ -185,12 +196,14 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger data %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
+			return response.data.data.chargerData
+			}
 		}catch(err) {this.log.error('Error retrieving charger data %s', err)}
 	},
 
-	getChargerConfig: async function(token,chargerId){
+	getChargerConfig: async function(token, chargerId){
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger config')
@@ -210,12 +223,14 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger config %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving charger config %s', err)}
 	},
 
-	getLastSession: async function(token,chargerId){
+	getLastSession: async function(token, chargerId){
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger session')
@@ -235,15 +250,17 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger session %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
 		}catch(err) {this.log.error('Error retrieving charger session %s', err)}
 	},
 
-	lock: async function(token,chargerId,value){
+	lock: async function(token, chargerId, value){
 		this.platform.apiCount++
 		try {
-			this.log.debug('Setting charger lock state for %s to %s',chargerId,value)
+			this.log.debug('Setting charger lock state for %s to %s',chargerId, value)
 			let response = await axios({
 					method: 'put',
 					baseURL:endpoint,
@@ -263,15 +280,18 @@ wallboxAPI.prototype={
 				this.log.error('Error locking charger config %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('put lock response',response.status)}
-			return response
+			if(response.status && this.platform.showAPIMessages){this.log.debug('put lock response status',response.status)}
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('put lock response',response.status)}
+				return response
+			}
 		}catch(err) {this.log.error('Error setting lock state config %s', err)}
 	},
 
-	setAmps: async function(token,chargerId,value){
+	setAmps: async function(token, chargerId, value){
 		this.platform.apiCount++
 		try {
-			this.log.debug('Setting amperage for %s to %s',chargerId,value)
+			this.log.debug('Setting amperage for %s to %s',chargerId, value)
 			let response = await axios({
 					method: 'put',
 					baseURL:endpoint,
@@ -292,15 +312,17 @@ wallboxAPI.prototype={
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 			})
 			if(response.status && this.platform.showAPIMessages){this.log.debug('put setAmps response status',response.status)}
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('put setAmps response {maxChargingCurrent:%s}',JSON.stringify(response.data.data.chargerData.maxChargingCurrent,null,2))}
-			return response
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('put setAmps response {maxChargingCurrent:%s}',JSON.stringify(response.data.data.chargerData.maxChargingCurrent,null,2))}
+				return response
+			}
 		}catch(err) {this.log.error('Error setting amperage %s', err)}
 	},
 
-	remoteAction: async function(token,chargerId,value){
+	remoteAction: async function(token, chargerId, value){
 		this.platform.apiCount++
 		try {
-			this.log.debug('Setting charging state for %s to %s',chargerId,value)
+			this.log.debug('Setting charging state for %s to %s',chargerId, value)
 			let action
 			switch(value){
 				case "resume":
@@ -331,9 +353,11 @@ wallboxAPI.prototype={
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
 				return(err.response)
 			})
-			if(response.status && this.platform.showAPIMessages){this.log.debug('post remote action response status',response.status)}
-			if(response.status==200 && this.platform.showAPIMessages){this.log.debug('post remote action response',JSON.stringify(response.data,null,2))}
-			return response
+			if(response.status && this.platform.showAPIMessages){this.log.debug('post remote action response status', response.status)}
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('post remote action response',JSON.stringify(response.data,null,2))}
+				return response
+			}
 		}catch(err) {this.log.error('Error with remote action %s', err)}
 	},
 }
