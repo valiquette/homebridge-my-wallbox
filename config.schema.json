@@ -53,32 +53,31 @@
 				"required": true,
 				"default": 20
 			},
-
 			"cars": {
-        "title": "Cars",
-        "type": "array",
-        "required": true,
-        "items": {
-          "title": "Car Info",
-          "type": "object",
-          "properties": {
+				"title": "Cars",
+				"type": "array",
+				"required": true,
+				"items": {
+					"title": "Car Info",
+					"type": "object",
+					"properties": {
 						"carName": {
-              "title": "Name of your Car",
-              "type": "string",
-              "minLength": 3,
-              "required": false,
+							"title": "Name of your Car",
+							"type": "string",
+							"minLength": 3,
+							"required": false,
 							"placeholder": "My EV"
-            },
-            "chargerName": {
-              "title": "Name of your Charger used for this car, reference the logging for exact names",
-              "type": "string",
-              "minLength": 3,
-              "required": false,
+						},
+						"chargerName": {
+							"title": "Name of your Charger used for this car, reference the logging for exact names",
+							"type": "string",
+							"minLength": 3,
+							"required": false,
 							"placeholder": "Wallbox"
-            },
-            "kwH": {
-              "title": "Battery Size in kwH for this car",
-              "type": "integer",
+						},
+						"kwH": {
+							"title": "Battery Size in kwH for this car",
+							"type": "integer",
 							"required": false,
 							"placeholder": 78
 						}
@@ -86,11 +85,11 @@
 				}
 			},
 			"locationName": {
-        "title": "Location Name",
-        "type": "string",
-        "required": false,
-        "placeholder": "Leave blank for all locations"
-      },
+				"title": "Location Name",
+				"type": "string",
+				"required": false,
+				"placeholder": "Leave blank for all locations"
+			},
 			"showControls": {
 				"title": "Show Charger Controls",
 				"type": "integer",

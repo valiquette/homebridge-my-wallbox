@@ -10,8 +10,8 @@ let enumeration=require('./enumerations')
 
 class wallboxPlatform {
 
-  constructor(log, config, api){
-    this.wallboxapi=new wallboxAPI(this, log)
+	constructor(log, config, api){
+		this.wallboxapi=new wallboxAPI(this, log)
 		this.lockMechanism=new lockMechanism(this, log)
 		this.battery=new battery(this, log)
 		this.sensor=new sensor(this, log)
@@ -20,11 +20,11 @@ class wallboxPlatform {
 		this.control=new control(this, log, config)
 		this.enumeration=enumeration
 
-    this.log=log
-    this.config=config
-    this.email=config.email
-    this.password=config.password
-    this.token
+		this.log=log
+		this.config=config
+		this.email=config.email
+		this.password=config.password
+		this.token
 		this.retryWait=config.retryWait || 60 //sec
 		this.refreshRate=config.refreshRate || 24 //hour
 		this.liveTimeout=config.liveRefreshTimeout || 2 //min
@@ -38,7 +38,7 @@ class wallboxPlatform {
 		this.useFahrenheit=config.useFahrenheit ? config.useFahrenheit : true
 		this.showAPIMessages=config.showAPIMessages ? config.showAPIMessages : false
 		this.id
-    this.userId
+		this.userId
 		this.cars=config.cars
 		this.locationName=config.locationName
 		this.locationMatch
@@ -49,24 +49,24 @@ class wallboxPlatform {
 			this.showControls=4
 			this.useFahrenheit=false
 		}
-    if(!config.email || !config.password){
-      this.log.error('Valid email and password are required in order to communicate with wallbox, please check the plugin config')
-    }
-      this.log.info('Starting Wallbox platform using homebridge API', api.version)
-      if(api){
-        this.api=api
-        this.api.on("didFinishLaunching", function (){
-          // Get devices
-          this.getDevices()
-        }.bind(this))
-      }
-    }
+		if(!config.email || !config.password){
+		this.log.error('Valid email and password are required in order to communicate with wallbox, please check the plugin config')
+		}
+		this.log.info('Starting Wallbox platform using homebridge API', api.version)
+		if(api){
+			this.api=api
+			this.api.on("didFinishLaunching", function (){
+				// Get devices
+				this.getDevices()
+			}.bind(this))
+		}
+		}
 
-  identify (){
-    this.log.info('Identify wallbox!')
-  }
+	identify(){
+		this.log.info('Identify wallbox!')
+	}
 
-  async getDevices(){
+	async getDevices(){
 		try{
 			this.log.debug('Fetching Build info...')
 			this.log.info('Getting Account info...')
@@ -212,13 +212,13 @@ class wallboxPlatform {
 		if(!this.liveUpdate){this.log.debug("live update started")}
 		this.liveUpdate=true
 			let interval = setInterval(async()=>{
-				this.lastInterval-interval
-					if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
-						clearInterval(interval)
-						this.liveUpdate=false
-						this.log.debug("live update stopped")
-						return
-					}
+				//this.lastInterval-interval////what????
+				if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
+					clearInterval(interval)
+					this.liveUpdate=false
+					this.log.debug("live update stopped")
+					return
+				}
 				this.getStatus(device.id)
 				this.log.debug('API call count %s', this.apiCount)
 			}, this.liveRefresh*1000)

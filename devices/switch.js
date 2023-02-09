@@ -10,28 +10,28 @@ function basicSwitch (platform,log,config){
 
 basicSwitch.prototype={
 
-  createSwitchService(device, type){
+	createSwitchService(device, type){
 		this.log.info('Adding switch for %s charger ', device.name)
-    this.log.debug('create new switch')
+		this.log.debug('create new switch')
 		let switchService=new Service.Switch(type, device.id)
 		let switchOn=false
 		if(device.statusDescription=="Charging"){switchOn=true}
-    switchService
-      .setCharacteristic(Characteristic.On, switchOn)
-      .setCharacteristic(Characteristic.Name, type)
-      .setCharacteristic(Characteristic.StatusFault,false)
-    return switchService
-  },
+		switchService
+		.setCharacteristic(Characteristic.On, switchOn)
+		.setCharacteristic(Characteristic.Name, type)
+		.setCharacteristic(Characteristic.StatusFault,false)
+		return switchService
+	},
 
-  configureSwitchService(device, switchService){
-    this.log.debug("configured %s switch for %s" , switchService.getCharacteristic(Characteristic.Name).value, device.name)
-    switchService
-      .getCharacteristic(Characteristic.On)
-      .on('get', this.getSwitchValue.bind(this, switchService))
-      .on('set', this.setSwitchValue.bind(this, device, switchService))
-  },
+	configureSwitchService(device, switchService){
+		this.log.debug("configured %s switch for %s" , switchService.getCharacteristic(Characteristic.Name).value, device.name)
+		switchService
+		.getCharacteristic(Characteristic.On)
+		.on('get', this.getSwitchValue.bind(this, switchService))
+		.on('set', this.setSwitchValue.bind(this, device, switchService))
+	},
 
-  setSwitchValue(device, switchService, value, callback){
+	setSwitchValue(device, switchService, value, callback){
 		if(switchService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
 		}

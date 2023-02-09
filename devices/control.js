@@ -22,17 +22,17 @@ control.prototype={
 		}
 		let controlService=new Service.Thermostat(type, device.id)
     controlService
-      .setCharacteristic(Characteristic.Name, device.name+' '+type)
-      .setCharacteristic(Characteristic.StatusFault,Characteristic.StatusFault.NO_FAULT)
-			.setCharacteristic(Characteristic.TargetTemperature, currentAmps)
-			.setCharacteristic(Characteristic.CurrentTemperature, currentAmps)
-			.setCharacteristic(Characteristic.TemperatureDisplayUnits,this.platform.useFahrenheit)
-			.setCharacteristic(Characteristic.TargetHeatingCoolingState,0)
-			.setCharacteristic(Characteristic.CurrentHeatingCoolingState,0)
-    return controlService
-  },
+		.setCharacteristic(Characteristic.Name, device.name+' '+type)
+		.setCharacteristic(Characteristic.StatusFault,Characteristic.StatusFault.NO_FAULT)
+		.setCharacteristic(Characteristic.TargetTemperature, currentAmps)
+		.setCharacteristic(Characteristic.CurrentTemperature, currentAmps)
+		.setCharacteristic(Characteristic.TemperatureDisplayUnits,this.platform.useFahrenheit)
+		.setCharacteristic(Characteristic.TargetHeatingCoolingState,0)
+		.setCharacteristic(Characteristic.CurrentHeatingCoolingState,0)
+		return controlService
+	},
 
-  configureControlService(device, controlService){
+	configureControlService(device, controlService){
 		let min
 		let max
 		let step
@@ -56,21 +56,21 @@ control.prototype={
 					minValue:0,
 					maxValue:1
 				})
-      .on('get', this.getControlState.bind(this, controlService))
-      .on('set', this.setControlState.bind(this, device, controlService))
+			.on('get', this.getControlState.bind(this, controlService))
+			.on('set', this.setControlState.bind(this, device, controlService))
 		controlService
-      .getCharacteristic(Characteristic.TargetTemperature)
-			.setProps({
-					minValue:min,
-					maxValue:max,
-					minStep:step
-			})
-      .on('get', this.getControlAmps.bind(this, controlService))
-      .on('set', this.setControlAmps.bind(this, device, controlService))
+			.getCharacteristic(Characteristic.TargetTemperature)
+				.setProps({
+						minValue:min,
+						maxValue:max,
+						minStep:step
+				})
+			.on('get', this.getControlAmps.bind(this, controlService))
+			.on('set', this.setControlAmps.bind(this, device, controlService))
 		controlService
-      .getCharacteristic(Characteristic.TemperatureDisplayUnits)
+			.getCharacteristic(Characteristic.TemperatureDisplayUnits)
 			.on('get', this.getControlUnits.bind(this, controlService))
-      .on('set', this.setControlUnits.bind(this, device, controlService))
+			.on('set', this.setControlUnits.bind(this, device, controlService))
   },
 
 	setControlAmps(device, controlService, value, callback){

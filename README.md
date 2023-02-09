@@ -40,8 +40,9 @@ Other hardware models/types may still work with this plugin and any feedback on 
 		}
 	],
 	"locationAddress": "123 Easy St",
-	"showControls": 5,
-	"socSensor": true,
+    "showControls": 3,
+    "socSensor": true,
+    "showAPIMessages": false,
 	"_bridge": {
 		"username": "0E:6C:D4:F2:16:EB",
 		"port": 35919

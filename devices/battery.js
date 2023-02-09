@@ -15,7 +15,7 @@ battery.prototype={
 		let stateOfCharge=0
 		if(device.stateOfCharge){stateOfCharge=device.stateOfCharge}
 		batteryStatus=new Service.Battery(device.name, device.id)
-    batteryStatus
+		batteryStatus
 			.setCharacteristic(Characteristic.StatusLowBattery,Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL)
 			.setCharacteristic(Characteristic.BatteryLevel, stateOfCharge)
 			.setCharacteristic(Characteristic.ChargingState, Characteristic.ChargingState.NOT_CHARGING)

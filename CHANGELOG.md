@@ -1,23 +1,28 @@
 # Changes
 
+## 1.1.11
+Update
+- Improved error handling.
+- Cleaned whitespace
+
 ## 1.1.10
 Fix
--	Fixed bug with token refresh (issue #16).
+- Fixed bug with token refresh (issue #16).
 Update
--	Improved error handling.
+- Improved error handling.
 - Bumped dependencies.
 
 ## 1.1.9
 Fix
--	Fixed un-caught error.
+- Fixed un-caught error.
 
 ## 1.1.8
 Fix
--	Fixed bug with token refresh (issue #16).
+- Fixed bug with token refresh (issue #16).
 Update
 - Added option to suppress API responses in debug log.
 - Code cleanup.
--	Improved error handling.
+- Improved error handling.
 - Bumped dependencies.
 
 ## 1.1.7
@@ -29,9 +34,9 @@ Update
 Fix
 - Fix error handling during startup when configuration has missing info.
 Update
--	Improved error handling for lock.
+- Improved error handling for lock.
 - Updated Axios to address error for unexpected end of file error.
--	Bumped dependencies.
+- Bumped dependencies.
 
 ## 1.1.5
 Update
@@ -95,7 +100,7 @@ Update
 ## 1.0.12
 
 Update
--	Added support for new status message.
+- Added support for new status message.
 - Cleaned up some error messaging
 
 ## 1.0.11
@@ -113,7 +118,7 @@ Update
 
 ## 1.0.8 -beta
 Update
--	Code cleanup
+- Code cleanup
 - bumped dependencies
 - corrected benign unknown device warning message.
 

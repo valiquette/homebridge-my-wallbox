@@ -10,26 +10,26 @@ function basicOutlet (platform,log,config){
 
 basicOutlet.prototype={
 
-  createOutletService(device, type){
+	createOutletService(device, type){
 		this.log.info('Adding outlet for %s charger ', device.name)
-    this.log.debug('create new outlet')
+		this.log.debug('create new outlet')
 		let outletService=new Service.Outlet(type, device.id)
 		let outletOn=false
 		if(device.statusDescription=="Charging"){outletOn=true}
-    outletService
-      .setCharacteristic(Characteristic.On, outletOn)
-      .setCharacteristic(Characteristic.Name, type)
-      .setCharacteristic(Characteristic.StatusFault,false)
-    return outletService
-  },
+		outletService
+		.setCharacteristic(Characteristic.On, outletOn)
+		.setCharacteristic(Characteristic.Name, type)
+		.setCharacteristic(Characteristic.StatusFault,false)
+		return outletService
+	},
 
-  configureOutletService(device, outletService){
-    this.log.debug("configured %s outlet for %s" , outletService.getCharacteristic(Characteristic.Name).value, device.name)
-    outletService
-      .getCharacteristic(Characteristic.On)
-      .on('get', this.getOutletValue.bind(this, outletService))
-      .on('set', this.setOutletValue.bind(this, device, outletService))
-  },
+	configureOutletService(device, outletService){
+		this.log.debug("configured %s outlet for %s" , outletService.getCharacteristic(Characteristic.Name).value, device.name)
+		outletService
+		.getCharacteristic(Characteristic.On)
+		.on('get', this.getOutletValue.bind(this, outletService))
+		.on('set', this.setOutletValue.bind(this, device, outletService))
+	},
 
   setOutletValue(device, outletService, value, callback){
 		if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
