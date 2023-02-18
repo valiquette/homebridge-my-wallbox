@@ -1,9 +1,11 @@
 # Changes
 
-## 1.1.11
+## 1.1.12
 Update
 - Improved error handling.
-- Cleaned whitespace
+- Improved error messaging.
+- Added retry logic for some APi errors/
+- Cleaned whitespace.
 
 ## 1.1.10
 Fix

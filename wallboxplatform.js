@@ -26,6 +26,8 @@ class wallboxPlatform {
 		this.password=config.password
 		this.token
 		this.retryWait=config.retryWait || 60 //sec
+		this.retryMax=config.retryMax || 3 //attempts
+		this.retryAttempt=0
 		this.refreshRate=config.refreshRate || 24 //hour
 		this.liveTimeout=config.liveRefreshTimeout || 2 //min
 		this.liveRefresh=config.liveRefreshRate || 20 //sec
@@ -71,22 +73,23 @@ class wallboxPlatform {
 			this.log.debug('Fetching Build info...')
 			this.log.info('Getting Account info...')
 			// login to the API and get the token
-			let email=await this.wallboxapi.checkEmail(this.email).catch(err=>{this.log.error('Failed to get email for build', err)})
+			let email=await this.wallboxapi.checkEmail(this.email).catch(err=>{this.log.error('Failed to get email for build. \n%s', err)})
 			this.log.info('Email status %s', email.data.attributes.status)
 			// get signin & token
-			let signin=await this.wallboxapi.signin(this.email, this.password).catch(err=>{this.log.error('Failed to get signin for build', err)})
+			let signin=await this.wallboxapi.signin(this.email, this.password).catch(err=>{this.log.error('Failed to get signin for build. \n%s', err)})
 			this.log.debug('Found user ID %s', signin.data.attributes.user_id)
-			this.log.debug('Found token %s', signin.data.attributes.token.substring(0,20))
+			//this.log.debug('Found token %s', signin.data.attributes.token)
+			this.log.debug('Found token %s**********', signin.data.attributes.token.substring(0,100))
 			this.id=signin.data.attributes.user_id
 			this.token=signin.data.attributes.token
 			this.setTokenRefresh(signin.data.attributes.ttl)
 
 			//get get user id
-			let userId=await this.wallboxapi.getId(this.token, this.id).catch(err=>{this.log.error('Failed to get userId for build', err)})
+			let userId=await this.wallboxapi.getId(this.token, this.id).catch(err=>{this.log.error('Failed to get userId for build. \n%s', err)})
 			this.log.debug('Found user ID %s', userId.data.attributes.value)
 			this.userId=userId.data.attributes.value
 			//get groups
-			let groups=await this.wallboxapi.getChargerGroups(this.token).catch(err=>{this.log.error('Failed to get groups for build', err)})
+			let groups=await this.wallboxapi.getChargerGroups(this.token).catch(err=>{this.log.error('Failed to get groups for build. \n%s', err)})
 			groups.result.groups.forEach((group)=>{
 				this.log.info('Found group for %s ', group.name)
 				group.chargers.forEach((charger)=>{
@@ -97,7 +100,7 @@ class wallboxPlatform {
 				})
 			})
 			//get user
-			let user=await this.wallboxapi.getUser(this.token, this.userId).catch(err=>{this.log.error('Failed to get user for build', err)})
+			let user=await this.wallboxapi.getUser(this.token, this.userId).catch(err=>{this.log.error('Failed to get user for build. \n%s', err)})
 			this.log.info('Found account for %s %s', user.data.name, user.data.surname)
 			user.data.accessConfigs.filter((accessConfig)=>{
 				groups.result.groups.forEach((group)=>{
@@ -114,9 +117,9 @@ class wallboxPlatform {
 			}).forEach((accessConfig)=>{
 				accessConfig.chargers.forEach(async(charger)=>{
 					//loop each charger
-					let chargerData=await this.wallboxapi.getChargerData(this.token, charger).catch(err=>{this.log.error('Failed to get charger configs for build', err)})
+					let chargerData=await this.wallboxapi.getChargerData(this.token, charger).catch(err=>{this.log.error('Failed to get charger data for build. \n%s', err)})
 					let uuid=UUIDGen.generate(chargerData.uid)
-					let chargerConfig=await this.wallboxapi.getChargerConfig(this.token, charger).catch(err=>{this.log.error(err)})
+					let chargerConfig=await this.wallboxapi.getChargerConfig(this.token, charger).catch(err=>{this.log.error('Failed to get charger configs for build. \n%s', err)})
 					if(this.accessories[uuid]){
 						this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
 						delete this.accessories[uuid]
@@ -167,10 +170,16 @@ class wallboxPlatform {
 			})
 			setTimeout(()=>{this.log.info('Wallbox platform finished loading')}, 1500)
 		}catch(err){
-			this.log.error('Failed to get devices...%s \nRetrying in %s seconds...', err, this.retryWait)
-			setTimeout(async()=>{
-				this.getDevices()
-			},this.retryWait*1000)
+			if(this.retryAttempt<this.retryMax){
+				this.retryAttempt++
+				this.log.error('Failed to get devices. Retry attempt %s of %s in %s seconds...',this.retryAttempt, this.retryMax, this.retryWait)
+				setTimeout(async()=>{
+					this.getDevices()
+				},this.retryWait*1000)
+			}
+			else{
+				this.log.error('Failed to get devices...\n%s', err)
+			}
 		}
 	}
 
@@ -180,8 +189,8 @@ class wallboxPlatform {
 			ttl=Math.round((ttl-Date.now())/1000)
 			setTimeout(async()=>{
 			try{
-				let signin=await this.wallboxapi.signin(this.email,this.password).catch(err=>{this.log.error('Failed to get signin for build', err)})
-				this.log.debug('refreshed token %s',signin.data.attributes.token)
+				let signin=await this.wallboxapi.signin(this.email,this.password).catch(err=>{this.log.error('Failed to get signin for build. \n%s', err)})
+				this.log.debug('refreshed token %s**********', signin.data.attributes.token.substring(0,100))
 				this.id=signin.data.attributes.user_id
 				this.token=signin.data.attributes.token
 				this.setTokenRefresh(signin.data.attributes.ttl)
@@ -197,11 +206,11 @@ class wallboxPlatform {
 				this.apiCount=0
 				this.getStatus(device.id)
 				try{
-					let checkUpdate=await this.wallboxapi.getChargerConfig(this.token, device.id).catch(err=>{this.log.error(err)})
+					let checkUpdate=await this.wallboxapi.getChargerConfig(this.token, device.id).catch(err=>{this.log.error('Failed to refresh charger configs. \n%s', err)})
 					if(checkUpdate.software.updateAvailable){
 						this.log.warn('%s software update %s is available',checkUpdate.name, checkUpdate.software.latestVersion)
 					}
-				}catch(err){this.log.error('Error checking for update', err)}
+				}catch(err){this.log.error('Error checking for update. \n%s', err)}
 			}, this.refreshRate*60*60*1000)
 		}
 
@@ -209,14 +218,14 @@ class wallboxPlatform {
 		clearInterval(this.lastInterval)
 		//get new token
 		let startTime = new Date().getTime() //live refresh
-		if(!this.liveUpdate){this.log.debug("live update started")}
+		if(!this.liveUpdate){this.log.debug('live update started')}
 		this.liveUpdate=true
 			let interval = setInterval(async()=>{
 				//this.lastInterval-interval////what????
 				if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
 					clearInterval(interval)
 					this.liveUpdate=false
-					this.log.debug("live update stopped")
+					this.log.debug('live update stopped')
 					return
 				}
 				this.getStatus(device.id)
@@ -236,7 +245,7 @@ class wallboxPlatform {
 					this.log.warn('Unable to find charger named "%s" as configured in the plugin settings for car "%s" with charger "%s". Please check your plugin settings.', wallboxChargerName, this.cars[0].carName, this.cars[0].chargerName)
 				}
 			}
-		}catch(err) {this.log.error('Error with config %s', JSON.stringify(this.cars,null,2))}
+		}catch(err) {this.log.error('Error with config. \n%s', JSON.stringify(this.cars,null,2))}
 
 		if(!this.batterySize){this.batterySize=80}
 		let hours = Math.floor(chargingTime / 60 / 60)
@@ -249,11 +258,11 @@ class wallboxPlatform {
 
 	async	getStatus(id){
 	try{
-		let statusResponse=await this.wallboxapi.getChargerStatus(this.token, id).catch(err=>{this.log.error(err)})
+		let statusResponse=await this.wallboxapi.getChargerStatus(this.token, id).catch(err=>{this.log.error('Failed to update charger status. \n%s', err)})
 			if(statusResponse){
 				this.updateStatus(statusResponse)
 			}
-		}catch(err) {this.log.error('Error updating status %s', err)}
+		}catch(err) {this.log.error('Error updating status. \n%s', err)}
 	}
 
 	async updateStatus(charger){

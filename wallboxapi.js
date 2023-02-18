@@ -1,4 +1,6 @@
+'use strict'
 let axios = require('axios')
+let rax = require('retry-axios') //v3.0.0 ES6 only
 
 let userEndpoint = 'https://user-api.wall-box.com/users'
 let endpoint = 'https://api.wall-box.com'
@@ -16,7 +18,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving device')
 			let response = await axios({
 					method: 'get',
-					baseURL:userEndpoint,
+					baseURL: userEndpoint,
 					url: `/emails/${email}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -34,17 +36,18 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error checking email %s', err)}
+		}catch(err) {this.log.error('Error checking email \n%s', err)}
 	},
 
 	signin: async function(email, password){
+		rax.attach()
 		this.platform.apiCount++
 		let b64encoded=(Buffer.from(email+':'+password,'utf8')).toString('base64')
 		try {
 			this.log.debug('Retrieving token')
 			let response = await axios({
 					method: 'get',
-					baseURL:userEndpoint,
+					baseURL: userEndpoint,
 					url: `/signin`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -53,18 +56,33 @@ wallboxAPI.prototype={
 						'User-Agent': `${PluginName}/${PluginVersion}`,
 						'Accept-Encoding': 'gzip,deflate,compress'
 					},
-					responseType: 'json'
+					responseType: 'json',
+					raxConfig: {
+						retry: 5,
+						noResponseRetries: 2,
+						retryDelay: 100,
+						httpMethodsToRetry: ['GET','PUT'],
+						statusCodesToRetry: [[100, 199], [400, 400], [401, 401], [404, 404], [500, 599]],
+						backoffType: 'exponential',
+						onRetryAttempt: err => {
+						  let cfg = rax.getConfig(err)
+						  this.log.warn(`${err.message} retrying get token, attempt #${cfg.currentRetryAttempt}`)
+						}
+					 }
 			}).catch(err=>{
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting token %s', err.message)
-				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+				if(err.response){
+					this.log.warn(JSON.stringify(err.response.data,null,2))
+					return err.response.data
+				}
 				return
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving token %s', err)}
+		}catch(err) {this.log.error('Error retrieving token \n%s', err)}
 	},
 
 	getId: async function(token, id){
@@ -73,7 +91,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving User ID')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v4/users/${id}/id`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -92,7 +110,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
 			return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving ID %s', err)}
+		}catch(err) {this.log.error('Error retrieving ID \n%s', err)}
 	},
 
 	getUser: async function(token, userId){
@@ -101,7 +119,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving user info')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v2/user/${userId}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -120,7 +138,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving user ID %s', err)}
+		}catch(err) {this.log.error('Error retrieving user ID \n%s', err)}
 	},
 
 	getChargerGroups: async function(token){
@@ -129,7 +147,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger groups')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v3/chargers/groups`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -148,16 +166,17 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving charger groups %s', err)}
+		}catch(err) {this.log.error('Error retrieving charger groups \n%s', err)}
 	},
 
 	getChargerStatus: async function(token, chargerId){
+		rax.attach()
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger status')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/chargers/status/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -165,21 +184,36 @@ wallboxAPI.prototype={
 						'User-Agent': `${PluginName}/${PluginVersion}`,
 						'Accept-Encoding': 'gzip,deflate,compress'
 					},
-					responseType: 'json'
+					responseType: 'json',
+					raxConfig: {
+						retry: 5,
+						noResponseRetries: 2,
+						retryDelay: 100,
+						httpMethodsToRetry: ['GET','PUT'],
+						statusCodesToRetry: [[100, 199], [400, 400], [401, 401], [404, 404], [500, 599]],
+						backoffType: 'exponential',
+						onRetryAttempt: err => {
+						  let cfg = rax.getConfig(err)
+						  this.log.warn(`${err.message} retrying get status, attempt #${cfg.currentRetryAttempt}`)
+						}
+					 }
 			}).catch(err=>{
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting charger status %s', err.message)
 				if(err.response){
 					if(err.response.status!=504){this.log.warn(JSON.stringify(err.response.data,null,2))}
-					return (err.response.data)
+					return err.response.data
 				}
 				return
 			})
-			if(response.status==200){
-				//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
-				return response.data
+			if(response){
+				if(response.status==200){
+					//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
+					return response.data
+				}
+				return
 			}
-		}catch(err) {this.log.error('Error retrieving charger status %s', err)}
+		}catch(err) {this.log.error('Error retrieving charger status \n%s', err)}
 	},
 
 	getChargerData: async function(token, chargerId){
@@ -188,7 +222,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger data')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -207,7 +241,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
 			return response.data.data.chargerData
 			}
-		}catch(err) {this.log.error('Error retrieving charger data %s', err)}
+		}catch(err) {this.log.error('Error retrieving charger data \n%s', err)}
 	},
 
 	getChargerConfig: async function(token, chargerId){
@@ -216,7 +250,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger config')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/chargers/config/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -235,7 +269,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving charger config %s', err)}
+		}catch(err) {this.log.error('Error retrieving charger config \n%s', err)}
 	},
 
 	getLastSession: async function(token, chargerId){
@@ -244,7 +278,7 @@ wallboxAPI.prototype={
 			this.log.debug('Retrieving charger session')
 			let response = await axios({
 					method: 'get',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `v4/charger-last-sessions`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -263,7 +297,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving charger session %s', err)}
+		}catch(err) {this.log.error('Error retrieving charger session \n%s', err)}
 	},
 
 	lock: async function(token, chargerId, value){
@@ -272,7 +306,7 @@ wallboxAPI.prototype={
 			this.log.debug('Setting charger lock state for %s to %s',chargerId, value)
 			let response = await axios({
 					method: 'put',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -295,7 +329,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('put lock response',response.status)}
 				return response
 			}
-		}catch(err) {this.log.error('Error setting lock state config %s', err)}
+		}catch(err) {this.log.error('Error setting lock state config \n%s', err)}
 	},
 
 	setAmps: async function(token, chargerId, value){
@@ -304,7 +338,7 @@ wallboxAPI.prototype={
 			this.log.debug('Setting amperage for %s to %s',chargerId, value)
 			let response = await axios({
 					method: 'put',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v2/charger/${chargerId}`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -327,7 +361,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('put setAmps response {maxChargingCurrent:%s}',JSON.stringify(response.data.data.chargerData.maxChargingCurrent,null,2))}
 				return response
 			}
-		}catch(err) {this.log.error('Error setting amperage %s', err)}
+		}catch(err) {this.log.error('Error setting amperage \n%s', err)}
 	},
 
 	remoteAction: async function(token, chargerId, value){
@@ -346,7 +380,7 @@ wallboxAPI.prototype={
 			}
 			let response = await axios({
 					method: 'post',
-					baseURL:endpoint,
+					baseURL: endpoint,
 					url: `/v3/chargers/${chargerId}/remote-action`,
 					headers: {
 						'Content-Type': 'application/json',
@@ -362,14 +396,14 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error with remote action %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return(err.response)
+				return err.response
 			})
 			if(response.status && this.platform.showAPIMessages){this.log.debug('post remote action response status', response.status)}
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('post remote action response',JSON.stringify(response.data,null,2))}
 				return response
 			}
-		}catch(err) {this.log.error('Error with remote action %s', err)}
+		}catch(err) {this.log.error('Error with remote action \n%s', err)}
 	},
 }
 
