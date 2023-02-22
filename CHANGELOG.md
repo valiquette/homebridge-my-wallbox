@@ -1,10 +1,23 @@
 # Changes
 
+## 1.1.14
+Fix issue #16
+- Some token TTLs are very short, 15 minutes vs 24 hours and could result in non recoverable unauthorzed messages.
+- Refactored updates to now refresh token prior to a new live update session.
+- Removed scheduled token refresh cycle.
+- Added logic to automatically sign in again if unauthorized response is recieved.
+- Removed 401 error from APi retrying, will automatically obtain new token.
+- Added config setting to log user info in normal log.
+
+## 1.1.13
+Test
+- Exposed information around token timeouts.
+
 ## 1.1.12
 Update
 - Improved error handling.
 - Improved error messaging.
-- Added retry logic for some APi errors/
+- Added retry logic for some API errors.
 - Cleaned whitespace.
 
 ## 1.1.10

@@ -2,12 +2,13 @@
 let axios = require('axios')
 let rax = require('retry-axios') //v3.0.0 ES6 only
 
-let userEndpoint = 'https://user-api.wall-box.com/users'
+let userEndpoint = 'https://user-api.wall-box.com'
 let endpoint = 'https://api.wall-box.com'
 
 function wallboxAPI (platform,log){
 	this.log=log
 	this.platform=platform
+	this.interceptorId=rax.attach()
 }
 
 wallboxAPI.prototype={
@@ -19,7 +20,7 @@ wallboxAPI.prototype={
 			let response = await axios({
 					method: 'get',
 					baseURL: userEndpoint,
-					url: `/emails/${email}`,
+					url: `/users/emails/${email}`,
 					headers: {
 						'Content-Type': 'application/json',
 						'User-Agent': `${PluginName}/${PluginVersion}`,
@@ -30,7 +31,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error checking email %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('check email response',JSON.stringify(response.data,null,2))}
@@ -40,7 +41,6 @@ wallboxAPI.prototype={
 	},
 
 	signin: async function(email, password){
-		rax.attach()
 		this.platform.apiCount++
 		let b64encoded=(Buffer.from(email+':'+password,'utf8')).toString('base64')
 		try {
@@ -48,7 +48,7 @@ wallboxAPI.prototype={
 			let response = await axios({
 					method: 'get',
 					baseURL: userEndpoint,
-					url: `/signin`,
+					url: `/users/signin`,
 					headers: {
 						'Content-Type': 'application/json',
 						'Authorization': `Basic ${b64encoded}`,
@@ -66,23 +66,69 @@ wallboxAPI.prototype={
 						backoffType: 'exponential',
 						onRetryAttempt: err => {
 						  let cfg = rax.getConfig(err)
-						  this.log.warn(`${err.message} retrying get token, attempt #${cfg.currentRetryAttempt}`)
+						  this.log.warn(`${err.message} retrying signin , attempt #${cfg.currentRetryAttempt}`)
 						}
 					 }
 			}).catch(err=>{
 				this.log.debug(JSON.stringify(err,null,2))
-				this.log.error('Error getting token %s', err.message)
-				if(err.response){
-					this.log.warn(JSON.stringify(err.response.data,null,2))
-					return err.response.data
-				}
-				return
+				this.log.error('Error signing in and getting token %s', err.message)
+				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('signin response',JSON.stringify(response.data,null,2))}
 				return response.data
 			}
 		}catch(err) {this.log.error('Error retrieving token \n%s', err)}
+	},
+
+	refresh: async function(refreshToken){
+		this.platform.apiCount++
+		try {
+			this.log.debug('Refreshing token')
+			let response = await axios({
+					method: 'get',
+					baseURL: userEndpoint,
+					url: `/users/refresh-token`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${refreshToken}`,
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
+					},
+					responseType: 'json',
+					raxConfig: {
+						retry: 4,
+						noResponseRetries: 3,
+						retryDelay: 100,
+						httpMethodsToRetry: ['GET','PUT'],
+						statusCodesToRetry: [[100, 199], [400, 400], [404, 404], [500, 599]],
+						backoffType: 'exponential',
+						onRetryAttempt: err => {
+						  let cfg = rax.getConfig(err)
+						  this.log.warn(`${err.message} retrying refresh token, attempt #${cfg.currentRetryAttempt}`)
+						}
+					 }
+			}).catch(err=>{
+				this.log.debug(JSON.stringify(err,null,2))
+				this.log.error('Error refreshing token %s', err.message)
+				if(err.response){
+					this.log.warn(JSON.stringify(err.response.data,null,2))
+					return err.response
+				}
+				else{
+					return err
+				}
+			})
+			if(response.code){
+				this.log.warn('no network',response.code)
+				return {'status':false}
+			}
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('refresh token response',JSON.stringify(response.data,null,2))}
+			}
+			return response
+		}catch(err) {this.log.error('Error refreshing token \n%s', err)}
 	},
 
 	getId: async function(token, id){
@@ -104,7 +150,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting ID %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('get ID response',JSON.stringify(response.data,null,2))}
@@ -132,7 +178,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting user ID %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('get user response',JSON.stringify(response.data,null,2))}
@@ -160,7 +206,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting charger groups %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('get charger groups data response',JSON.stringify(response.data,null,2))}
@@ -170,7 +216,6 @@ wallboxAPI.prototype={
 	},
 
 	getChargerStatus: async function(token, chargerId){
-		rax.attach()
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger status')
@@ -186,11 +231,11 @@ wallboxAPI.prototype={
 					},
 					responseType: 'json',
 					raxConfig: {
-						retry: 5,
+						retry: 3,
 						noResponseRetries: 2,
 						retryDelay: 100,
 						httpMethodsToRetry: ['GET','PUT'],
-						statusCodesToRetry: [[100, 199], [400, 400], [401, 401], [404, 404], [500, 599]],
+						statusCodesToRetry: [[100, 199], [400, 400], [404, 404], [500, 599]],
 						backoffType: 'exponential',
 						onRetryAttempt: err => {
 						  let cfg = rax.getConfig(err)
@@ -202,16 +247,12 @@ wallboxAPI.prototype={
 				this.log.error('Error getting charger status %s', err.message)
 				if(err.response){
 					if(err.response.status!=504){this.log.warn(JSON.stringify(err.response.data,null,2))}
-					return err.response.data
 				}
-				return
+				return err.response
 			})
-			if(response){
-				if(response.status==200){
-					//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
-					return response.data
-				}
-				return
+			if(response.status==200){
+				//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
+				return response.data
 			}
 		}catch(err) {this.log.error('Error retrieving charger status \n%s', err)}
 	},
@@ -235,7 +276,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting charger data %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('get charger data response',JSON.stringify(response.data.data.chargerData,null,2))}
@@ -263,7 +304,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting charger config %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('get charger config response',JSON.stringify(response.data,null,2))}
@@ -291,7 +332,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error getting charger session %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status==200){
 				if(this.platform.showAPIMessages){this.log.debug('get charger session response',JSON.stringify(response.data,null,2))}
@@ -322,7 +363,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error locking charger config %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status && this.platform.showAPIMessages){this.log.debug('put lock response status',response.status)}
 			if(response.status==200){
@@ -354,7 +395,7 @@ wallboxAPI.prototype={
 				this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error setting amperage %s', err.message)
 				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
-				return
+				return err.response
 			})
 			if(response.status && this.platform.showAPIMessages){this.log.debug('put setAmps response status',response.status)}
 			if(response.status==200){

@@ -51,9 +51,9 @@ lockMechanism.prototype={
 			//.on('set', this.setLockCurrentState.bind(this, device, lockService))
 	},
 
-	getLockCurrentState: function (device,lockService, callback) {
+	getLockCurrentState: async function (device,lockService, callback) {
 		let currentValue=lockService.getCharacteristic(Characteristic.LockCurrentState).value
-		this.platform.startLiveUpdate(device)
+		await this.platform.startLiveUpdate(device) //may slowdown plugin
 		callback(null,currentValue)
 	},
 

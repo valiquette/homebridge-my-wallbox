@@ -25,6 +25,7 @@ class wallboxPlatform {
 		this.email=config.email
 		this.password=config.password
 		this.token
+		this.refreshToken
 		this.retryWait=config.retryWait || 60 //sec
 		this.retryMax=config.retryMax || 3 //attempts
 		this.retryAttempt=0
@@ -39,6 +40,7 @@ class wallboxPlatform {
 		this.showControls=config.showControls
 		this.useFahrenheit=config.useFahrenheit ? config.useFahrenheit : true
 		this.showAPIMessages=config.showAPIMessages ? config.showAPIMessages : false
+		this.showUserMessages=config.showUserMessages ? config.showUserMessages : false
 		this.id
 		this.userId
 		this.cars=config.cars
@@ -75,15 +77,28 @@ class wallboxPlatform {
 			// login to the API and get the token
 			let email=await this.wallboxapi.checkEmail(this.email).catch(err=>{this.log.error('Failed to get email for build. \n%s', err)})
 			this.log.info('Email status %s', email.data.attributes.status)
+			if( email.data.attributes.status!="confirmed"){
+				return
+			}
 			// get signin & token
 			let signin=await this.wallboxapi.signin(this.email, this.password).catch(err=>{this.log.error('Failed to get signin for build. \n%s', err)})
 			this.log.debug('Found user ID %s', signin.data.attributes.user_id)
 			//this.log.debug('Found token %s', signin.data.attributes.token)
-			this.log.debug('Found token %s**********', signin.data.attributes.token.substring(0,100))
+			this.log.debug('Found token  %s********************%s', signin.data.attributes.token.substring(0,35),signin.data.attributes.token.substring((signin.data.attributes.token).length-35))
 			this.id=signin.data.attributes.user_id
 			this.token=signin.data.attributes.token
-			this.setTokenRefresh(signin.data.attributes.ttl)
-
+			this.refreshToken=signin.data.attributes.refresh_token
+			if(this.showUserMessages){
+				this.log.info('Current time ',new Date(Date.now()).toLocaleString())
+				this.log.info('Token will expire on %s, %s minutes ',new Date(signin.data.attributes.ttl).toLocaleString(), Math.round((signin.data.attributes.ttl-Date.now())/60/1000))
+				this.log.info('Refresh Token will expire on %s, %s days ',new Date(signin.data.attributes.refresh_token_ttl).toLocaleString(), Math.round((signin.data.attributes.refresh_token_ttl-Date.now())/24/60/60/1000))
+				}
+			else{
+				this.log.debug('Current time ',new Date(Date.now()).toLocaleString())
+				this.log.debug('Token will expire on %s, %s minutes ',new Date(signin.data.attributes.ttl).toLocaleString(), Math.round((signin.data.attributes.ttl-Date.now())/60/1000))
+				this.log.debug('Refresh Token will expire on %s, %s days ',new Date(signin.data.attributes.refresh_token_ttl).toLocaleString(), Math.round((signin.data.attributes.refresh_token_ttl-Date.now())/24/60/60/1000))
+				}
+			//this.setTokenRefresh(signin.data.attributes.ttl) //disabled for new ondemand method
 			//get get user id
 			let userId=await this.wallboxapi.getId(this.token, this.id).catch(err=>{this.log.error('Failed to get userId for build. \n%s', err)})
 			this.log.debug('Found user ID %s', userId.data.attributes.value)
@@ -183,25 +198,50 @@ class wallboxPlatform {
 		}
 	}
 
-	setTokenRefresh(ttl){
-			//this.log.warn(new Date(ttl).toLocaleString())
-			//this.log.warn(new Date(Date.now()).toLocaleString())
+	setTokenRefresh(ttl){ // no longer called
 			ttl=Math.round((ttl-Date.now())/1000)
 			setTimeout(async()=>{
-			try{
-				let signin=await this.wallboxapi.signin(this.email,this.password).catch(err=>{this.log.error('Failed to get signin for build. \n%s', err)})
-				this.log.debug('refreshed token %s**********', signin.data.attributes.token.substring(0,100))
+			this.getNewToken()
+		},ttl*1000*.9) //will refresh with  ~2.4 hours before a 24 hour clock expires
+	}
+
+	async getNewToken(){
+		try{
+			let refresh=await this.wallboxapi.refresh(this.refreshToken).catch(err=>{this.log.error('Failed to refresh token. \n%s', err)})
+			if(refresh.status==401){
+				let signin=await this.wallboxapi.signin(this.email, this.password).catch(err=>{this.log.error('Failed to get signin for build. \n%s', err)})
+				if(this.showUserMessages){
+					this.log.info('New token %s********************%s', signin.data.attributes.token.substring(0,35),signin.data.attributes.token.substring((signin.data.attributes.token).length-35))
+				}
+				else{
+					this.log.debug('New token  %s********************%s', signin.data.attributes.token.substring(0,35),signin.data.attributes.token.substring((signin.data.attributes.token).length-35))
+				}
 				this.id=signin.data.attributes.user_id
 				this.token=signin.data.attributes.token
-				this.setTokenRefresh(signin.data.attributes.ttl)
-				this.log.info('Token has been refreshed')
-			}catch(err){this.log.error('Failed to refresh token', err)}
-		},ttl*1000*.9) //will refresh with  ~2.4 hours before a 24 hour clock expires
+				this.refreshToken=signin.data.attributes.refresh_token
+				return 'Retrieved new token'
+			}
+			if(refresh.status==200){
+				if(this.showUserMessages){
+					this.log.info('Refreshed token  %s********************%s', refresh.data.data.attributes.token.substring(0,35),refresh.data.data.attributes.token.substring((refresh.data.data.attributes.token).length-35))
+				}
+				else{
+					this.log.debug('Refreshed token  %s********************%s', refresh.data.data.attributes.token.substring(0,35),refresh.data.data.attributes.token.substring((refresh.data.data.attributes.token).length-35))
+				}
+				this.id=refresh.data.data.attributes.user_id
+				this.token=refresh.data.data.attributes.token
+				this.refreshToken=refresh.data.data.attributes.refresh_token
+				//this.setTokenRefresh(refresh.data.attributes.ttl) //disabled
+				return 'Refreshed exsisting token'
+			}
+			return 'Failed to update token'
+		}catch(err){this.log.error('Failed to refresh token', err)}
 	}
 
 	setChargerRefresh(device){
 		// Refresh charger status
 			setInterval(async()=>{
+				await this.getNewToken()
 				this.log('API calls for this polling period %s', this.apiCount)
 				this.apiCount=0
 				this.getStatus(device.id)
@@ -217,15 +257,27 @@ class wallboxPlatform {
 	async startLiveUpdate(device){
 		clearInterval(this.lastInterval)
 		//get new token
+		let x=await this.getNewToken()
+		if(this,this.showUserMessages){
+			this.log.info('Starting live update')
+			this.log.info(x)
+		}else{
+			this.log.debug('Starting live update')
+			this.log.debug(x)
+		}
 		let startTime = new Date().getTime() //live refresh
-		if(!this.liveUpdate){this.log.debug('live update started')}
+		if(!this.liveUpdate){this.log.debug('Live update started')}
 		this.liveUpdate=true
 			let interval = setInterval(async()=>{
-				//this.lastInterval-interval////what????
 				if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
 					clearInterval(interval)
 					this.liveUpdate=false
-					this.log.debug('live update stopped')
+					if(this,this.showUserMessages){
+						this.log.info('Live update stopped')
+					}
+					else{
+						this.log.debug('Live update stopped')
+					}
 					return
 				}
 				this.getStatus(device.id)
@@ -259,7 +311,8 @@ class wallboxPlatform {
 	async	getStatus(id){
 	try{
 		let statusResponse=await this.wallboxapi.getChargerStatus(this.token, id).catch(err=>{this.log.error('Failed to update charger status. \n%s', err)})
-			if(statusResponse){
+		//this.log.warn(statusResponse.status) //test
+			if(statusResponse.status==200){
 				this.updateStatus(statusResponse)
 			}
 		}catch(err) {this.log.error('Error updating status. \n%s', err)}

@@ -31,7 +31,7 @@ basicOutlet.prototype={
 		.on('set', this.setOutletValue.bind(this, device, outletService))
 	},
 
-  setOutletValue(device, outletService, value, callback){
+	setOutletValue(device, outletService, value, callback){
 		if(controlService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
 		}
@@ -116,7 +116,7 @@ basicOutlet.prototype={
 				}
 			})
 		}
-  },
+	},
 
 	getOutletValue(outletService, callback){
 		if(outletService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){

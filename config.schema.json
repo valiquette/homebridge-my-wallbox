@@ -132,6 +132,13 @@
 				"required": false,
 				"default": false,
 				"description": "Do you want to log API response messages?"
+			},
+			"showUserMessages": {
+				"title": "Show User messages",
+				"type": "boolean",
+				"required": false,
+				"default": false,
+				"description": "Do you want to log user related messages in information log, if uncheck these will be logged to debug log. This may be usefull for troubleshooting."
 			}
 		}
 	},
@@ -217,7 +224,8 @@
 			"expandable": true,
 			"flex-flow": "row wrap",
 			"items": [
-				"showAPIMessages"
+				"showAPIMessages",
+				"showUserMessages"
 			]
 		}
 	]
