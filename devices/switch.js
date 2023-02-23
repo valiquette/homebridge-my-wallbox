@@ -36,11 +36,12 @@ basicSwitch.prototype={
 			callback('error')
 		}
 		else{
+			switchService.getCharacteristic(Characteristic.On).updateValue(value)
 			let chargerData=await this.wallboxapi.getChargerData(this.platform.token,device.id).catch(err=>{this.log.error('Failed to get charger data. \n%s', err)})
 			try{
 				statusCode=chargerData.status
 				currentMode=this.enumeration.items.filter(result=>result.status == statusCode)[0].mode
-				this.log.debug('checking current mode = %s',currentMode)
+				this.log.debug('checking statuscod = %s, current mode = %s', statusCode, currentMode)
 			}catch(error){
 				statusCode='unknown'
 				currentMode='unknown'

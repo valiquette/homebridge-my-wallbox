@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.15
+Fix
+- Fixed slow update response when attempting to pause/resume without an active session.
+
 ## 1.1.14
 Fix issue #16
 - Some token TTLs are very short, 15 minutes vs 24 hours and could result in non recoverable unauthorzed messages.

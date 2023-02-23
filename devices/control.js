@@ -160,7 +160,7 @@ control.prototype={
 			try{
 				statusCode=chargerData.status
 				currentMode=this.enumeration.items.filter(result=>result.status == statusCode)[0].mode
-				this.log.debug('checking current mode = %s',currentMode)
+				this.log.debug('checking statuscod = %s, current mode = %s', statusCode, currentMode)
 			}catch(error){
 				currentMode='unknown'
 				this.log.error('failed current mode check')
