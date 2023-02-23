@@ -309,11 +309,11 @@ class wallboxPlatform {
 	}
 
 	async	getStatus(id){
-	try{
-		let statusResponse=await this.wallboxapi.getChargerStatus(this.token, id).catch(err=>{this.log.error('Failed to update charger status. \n%s', err)})
-		//this.log.warn(statusResponse.status) //test
+	let statusResponse=await this.wallboxapi.getChargerStatus(this.token, id).catch(err=>{this.log.error('Failed to update charger status. \n%s', err)})
+		try{
+		this.log.debug('response status %s',statusResponse.status)
 			if(statusResponse.status==200){
-				this.updateStatus(statusResponse)
+				this.updateStatus(statusResponse.data)
 			}
 		}catch(err) {this.log.error('Error updating status. \n%s', err)}
 	}
@@ -328,8 +328,6 @@ class wallboxPlatform {
 			let statusID=charger.status_id
 			let added_kWh=charger.added_energy
 			let chargingTime=charger.charging_time
-
-			this.log.debug('Updating charger ID %s',chargerID)
 			let uuid=UUIDGen.generate(chargerUID)
 			let lockAccessory=this.accessories[uuid]
 			let controlService
@@ -340,6 +338,7 @@ class wallboxPlatform {
 			let sensorService
 			let statusInfo
 			let batteryPercent
+			this.log.debug('Updating charger ID %s',chargerID)
 			lockService=lockAccessory.getServiceById(Service.LockMechanism, chargerID)
 			if(this.showBattery){
 				batteryService=lockAccessory.getServiceById(Service.Battery, chargerID)
@@ -349,7 +348,6 @@ class wallboxPlatform {
 			if(this.showControls==1 || this.showControls==4){switchService=lockAccessory.getServiceById(Service.Switch, chargerID)}
 			if(this.showControls==5 || this.showControls==4){outletService=lockAccessory.getServiceById(Service.Outlet, chargerID)}
 			if(this.showControls==3 || this.showControls==4){controlService=lockAccessory.getServiceById(Service.Thermostat, chargerID)}
-
 			/****
 			enumerations will contain list of known status and descriptions
 			text is base on web, altText is based on app

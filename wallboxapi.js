@@ -252,7 +252,7 @@ wallboxAPI.prototype={
 			})
 			if(response.status==200){
 				//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
-				return response.data
+				return response
 			}
 		}catch(err) {this.log.error('Error retrieving charger status \n%s', err)}
 	},

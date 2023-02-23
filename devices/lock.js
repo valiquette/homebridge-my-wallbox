@@ -14,14 +14,14 @@ lockMechanism.prototype={
 		this.log.debug('create Lock Accessory %s',device.name)
 		let newPlatformAccessory=new PlatformAccessory(device.name, uuid)
 		newPlatformAccessory.getService(Service.AccessoryInformation)
-		.setCharacteristic(Characteristic.Name, device.name)
-		.setCharacteristic(Characteristic.Manufacturer, "Wallbox")
-		.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
-		.setCharacteristic(Characteristic.Model, device.chargerType)
-		.setCharacteristic(Characteristic.Identify, true)
-		.setCharacteristic(Characteristic.FirmwareRevision, config.software.currentVersion)
-		.setCharacteristic(Characteristic.HardwareRevision, config.part_number)
-		.setCharacteristic(Characteristic.SoftwareRevision, packageJson.version)
+			.setCharacteristic(Characteristic.Name, device.name)
+			.setCharacteristic(Characteristic.Manufacturer, "Wallbox")
+			.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
+			.setCharacteristic(Characteristic.Model, device.chargerType)
+			.setCharacteristic(Characteristic.Identify, true)
+			.setCharacteristic(Characteristic.FirmwareRevision, config.software.currentVersion)
+			.setCharacteristic(Characteristic.HardwareRevision, config.part_number)
+			.setCharacteristic(Characteristic.SoftwareRevision, packageJson.version)
 		return newPlatformAccessory
 	},
 
@@ -89,6 +89,7 @@ lockMechanism.prototype={
 				this.log.info('Locking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
+				//let response=await this.wallboxapi.lock(this.platform.token,chargerId,value).catch(err=>{this.log.error('Failed to unlock. \n%s', err)})
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					try {
 						switch(response.status){
@@ -111,6 +112,7 @@ lockMechanism.prototype={
 				this.log.info('Unlocking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
+				//let response=await this.wallboxapi.lock(this.platform.token,chargerId,value).catch(err=>{this.log.error('Failed to unlock. \n%s', err)})
 				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
 					try {
 						switch(response.status){
