@@ -18,13 +18,13 @@ basicSwitch.prototype={
 		if(device.statusDescription=="Charging"){switchOn=true}
 		switchService
 			.setCharacteristic(Characteristic.On, switchOn)
-			.setCharacteristic(Characteristic.Name, type)
+			.setCharacteristic(Characteristic.Name, device.name+' '+type)
 			.setCharacteristic(Characteristic.StatusFault,false)
 		return switchService
 	},
 
 	configureSwitchService(device, switchService){
-		this.log.debug("configured %s switch for %s" , switchService.getCharacteristic(Characteristic.Name).value, device.name)
+		this.log.debug("configured %s switch for %s", switchService.getCharacteristic(Characteristic.Name).value, device.name)
 		switchService
 			.getCharacteristic(Characteristic.On)
 			.on('get', this.getSwitchValue.bind(this, switchService))

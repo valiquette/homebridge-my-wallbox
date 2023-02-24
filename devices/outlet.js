@@ -18,13 +18,13 @@ basicOutlet.prototype={
 		if(device.statusDescription=="Charging"){outletOn=true}
 		outletService
 			.setCharacteristic(Characteristic.On, outletOn)
-			.setCharacteristic(Characteristic.Name, type)
+			.setCharacteristic(Characteristic.Name, device.name+' '+type)
 			.setCharacteristic(Characteristic.StatusFault,false)
 		return outletService
 	},
 
 	configureOutletService(device, outletService){
-		this.log.debug("configured %s outlet for %s" , outletService.getCharacteristic(Characteristic.Name).value, device.name)
+		this.log.debug("configured %s outlet for %s", outletService.getCharacteristic(Characteristic.Name).value, device.name)
 		outletService
 			.getCharacteristic(Characteristic.On)
 			.on('get', this.getOutletValue.bind(this, outletService))

@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.16
+Update
+- Updated switch and outlet naming.
+- Code cleanup.
+
 ## 1.1.15
 Fix
 - Fixed slow update response when attempting to pause/resume without an active session.

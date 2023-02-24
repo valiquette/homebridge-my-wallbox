@@ -49,7 +49,7 @@ control.prototype={
 			if(device.maxAvailableCurrent==48){max=48}
 		}
 
-    this.log.debug("configured %s control for %s" , controlService.getCharacteristic(Characteristic.Name).value, device.name)
+    this.log.debug("configured %s control for %s", controlService.getCharacteristic(Characteristic.Name).value, device.name)
 		controlService
       .getCharacteristic(Characteristic.TargetHeatingCoolingState)
 			.setProps({

@@ -11,7 +11,7 @@ lockMechanism.prototype={
 
 	createLockAccessory(device,config,uuid){
 		this.log.info('Adding lock for %s charger ', device.name)
-		this.log.debug('create Lock Accessory %s',device.name)
+		this.log.debug('create Lock Accessory %s', device.name)
 		let newPlatformAccessory=new PlatformAccessory(device.name, uuid)
 		newPlatformAccessory.getService(Service.AccessoryInformation)
 			.setCharacteristic(Characteristic.Name, device.name)
