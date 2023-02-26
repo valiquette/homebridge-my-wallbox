@@ -66,20 +66,18 @@ basicOutlet.prototype={
 						callback('error')
 					}
 					else{
-						//let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'resume').catch(err=>{this.log.error('Failed to resume. \n%s', err)})
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'resume').then(response=>{
-							switch(response.status){
-								case 200:
-									outletService.getCharacteristic(Characteristic.On).updateValue(value)
-									this.log.info('Charging resumed')
-									break
-								default:
-									outletService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.info('Failed to start charging')
-									this.log.debug(response.data)
-									break
-							}
-						})
+						let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'resume').catch(err=>{this.log.error('Failed to resume. \n%s', err)})
+						switch(response.status){
+							case 200:
+								outletService.getCharacteristic(Characteristic.On).updateValue(value)
+								this.log.info('Charging resumed')
+								break
+							default:
+								outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+								this.log.info('Failed to start charging')
+								this.log.debug(response.data)
+								break
+						}
 					}
 					callback()
 					break
@@ -89,20 +87,18 @@ basicOutlet.prototype={
 						callback('error')
 					}
 					else{
-						//let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').catch(err=>{this.log.error('Failed to pause. \n%s', err)})
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').then(response=>{
-							switch(response.status){
-								case 200:
-									outletService.getCharacteristic(Characteristic.On).updateValue(value)
-									this.log.info('Charging paused')
-									break
-								default:
-									outletService.getCharacteristic(Characteristic.On).updateValue(!value)
-									this.log.info('Failed to stop charging')
-									this.log.debug(response.data)
-									break
-							}
-						})
+						let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').catch(err=>{this.log.error('Failed to pause. \n%s', err)})
+						switch(response.status){
+							case 200:
+								outletService.getCharacteristic(Characteristic.On).updateValue(value)
+								this.log.info('Charging paused')
+								break
+							default:
+								outletService.getCharacteristic(Characteristic.On).updateValue(!value)
+								this.log.info('Failed to stop charging')
+								this.log.debug(response.data)
+								break
+						}
 					}
 					callback()
 					break

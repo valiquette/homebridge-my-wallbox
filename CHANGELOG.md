@@ -1,6 +1,8 @@
 # Changes
 
 ## 1.1.16
+Fix
+- Fixed slow to update warnings.
 Update
 - Updated switch and outlet naming.
 - Code cleanup.

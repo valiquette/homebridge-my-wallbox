@@ -44,7 +44,7 @@ lockMechanism.prototype={
 		lockService
 			.getCharacteristic(Characteristic.LockTargetState)
 			.on('get', this.getLockTargetState.bind(this,lockService))
-		.on('set', this.setLockTargetState.bind(this, device, lockService))
+			.on('set', this.setLockTargetState.bind(this, device, lockService))
 		lockService
 			.getCharacteristic(Characteristic.LockCurrentState)
 			.on('get', this.getLockCurrentState.bind(this, device, lockService))
@@ -53,8 +53,8 @@ lockMechanism.prototype={
 
 	getLockCurrentState: async function (device,lockService, callback) {
 		let currentValue=lockService.getCharacteristic(Characteristic.LockCurrentState).value
-		await this.platform.startLiveUpdate(device) //may slowdown plugin
 		callback(null,currentValue)
+		this.platform.startLiveUpdate(device) //may slowdown plugin
 	},
 
 	setLockCurrentState: function (device, lockService, value, callback) {
@@ -80,7 +80,7 @@ lockMechanism.prototype={
 		callback(null,currentValue)
 	},
 
-	setLockTargetState: function (device, lockService, value, callback) {
+	setLockTargetState: async function (device, lockService, value, callback) {
 		if(lockService.getCharacteristic(Characteristic.StatusFault).value==Characteristic.StatusFault.GENERAL_FAULT){
 			callback('error')
 		}
@@ -89,47 +89,39 @@ lockMechanism.prototype={
 				this.log.info('Locking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
-				//let response=await this.wallboxapi.lock(this.platform.token,chargerId,value).catch(err=>{this.log.error('Failed to unlock. \n%s', err)})
-				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
-					try {
-						switch(response.status){
-							case 200:
-								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
-								//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(lockService.getCharacteristic(Characteristic.LockTargetState).value)
-								break
-							default:
-								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(!response.data.data.chargerData.locked)
-								//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(lockService.getCharacteristic(Characteristic.LockCurrentState).value)
-								this.log.info('Failed to lock WallBox')
-								break
-						}
-					} catch (error) {
-						this.log.error('Failed to lock Wallbox')
+				let response=await this.wallboxapi.lock(this.platform.token,chargerId,value).catch(err=>{this.log.error('Failed to unlock. \n%s', err)})
+				try {
+					switch(response.status){
+						case 200:
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
+							break
+						default:
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(!response.data.data.chargerData.locked)
+							this.log.info('Failed to lock WallBox')
+							break
 					}
-				})
-			}
+				} catch (error) {
+					this.log.error('Failed to lock Wallbox')
+				}
+		}
 			else{
 				this.log.info('Unlocking %s',lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
 				let chargerId=lockService.getCharacteristic(Characteristic.SerialNumber).value
-				//let response=await this.wallboxapi.lock(this.platform.token,chargerId,value).catch(err=>{this.log.error('Failed to unlock. \n%s', err)})
-				this.wallboxapi.lock(this.platform.token,chargerId,value).then(response=>{
-					try {
-						switch(response.status){
-							case 200:
-								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
-								//lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(lockService.getCharacteristic(Characteristic.LockTargetState).value)
-								break
-							default:
-								lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(!response.data.data.chargerData.locked)
-								//lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(lockService.getCharacteristic(Characteristic.LockCurrentState).value)
-								this.log.info('Failed to unlock WallBox')
-								break
-						}
-					} catch (error) {
-						this.log.error('Failed to unlock Wallbox')
+				let response=await this.wallboxapi.lock(this.platform.token,chargerId,value).catch(err=>{this.log.error('Failed to unlock. \n%s', err)})
+				try {
+					switch(response.status){
+						case 200:
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(response.data.data.chargerData.locked)
+							break
+						default:
+							lockService.getCharacteristic(Characteristic.LockCurrentState).updateValue(!response.data.data.chargerData.locked)
+							this.log.info('Failed to unlock WallBox')
+							break
 					}
-				})
+				} catch (error) {
+					this.log.error('Failed to unlock Wallbox')
+				}
 			}
 			callback()
 		}

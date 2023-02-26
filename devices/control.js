@@ -118,19 +118,17 @@ control.prototype={
 						callback('error')
 					}
 					else{
-						//let response=await this.wallboxapi.setAmps(this.platform.token,device.id,amps).catch(err=>{this.log.error('Failed to set amps. \n%s', err)})
-						this.wallboxapi.setAmps(this.platform.token,device.id,amps).then(response=>{
-							switch(response.status){
-								case 200:
-									controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(controlService.getCharacteristic(Characteristic.TargetTemperature).value)
-									break
-								default:
-									controlService.getCharacteristic(Characteristic.TargetTemperature).updateValue(controlService.getCharacteristic(Characteristic.CurrentTemperature).value)
-									this.log.info('Failed to change charging amps %s',response.data.title)
-									this.log.debug(response.data)
-									break
-								}
-							})
+						let response=await this.wallboxapi.setAmps(this.platform.token,device.id,amps).catch(err=>{this.log.error('Failed to set amps. \n%s', err)})
+						switch(response.status){
+							case 200:
+								controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(controlService.getCharacteristic(Characteristic.TargetTemperature).value)
+								break
+							default:
+								controlService.getCharacteristic(Characteristic.TargetTemperature).updateValue(controlService.getCharacteristic(Characteristic.CurrentTemperature).value)
+								this.log.info('Failed to change charging amps %s',response.data.title)
+								this.log.debug(response.data)
+								break
+						}
 					}
 					callback()
 					break
@@ -184,20 +182,18 @@ control.prototype={
 						callback('error')
 					}
 					else{
-						//let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'resume').catch(err=>{this.log.error('Failed to resume. \n%s', err)})
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'resume').then(response=>{
-							switch(response.status){
-								case 200:
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).value)
-									this.log.info('Charging resumed')
-									break
-								default:
-									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value)
-									this.log.info('Failed to start charging')
-									this.log.debug(response.data)
-									break
-							}
-						})
+						let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'resume').catch(err=>{this.log.error('Failed to resume. \n%s', err)})
+						switch(response.status){
+							case 200:
+								controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).value)
+								this.log.info('Charging resumed')
+								break
+							default:
+								controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value)
+								this.log.info('Failed to start charging')
+								this.log.debug(response.data)
+								break
+						}
 					}
 					callback()
 					break
@@ -207,20 +203,18 @@ control.prototype={
 						callback('error')
 					}
 					else{
-						//let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').catch(err=>{this.log.error('Failed to pause. \n%s', err)})
-						this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').then(response=>{
-							switch(response.status){
-								case 200:
-									controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).value)
-									this.log.info('Charging paused')
-									break
-								default:
-									controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value)
-									this.log.info('Failed to stop charging')
-									this.log.debug(response.data)
-									break
-							}
-						})
+						let response=await this.wallboxapi.remoteAction(this.platform.token,device.id,'pause').catch(err=>{this.log.error('Failed to pause. \n%s', err)})
+						switch(response.status){
+							case 200:
+								controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).value)
+								this.log.info('Charging paused')
+								break
+							default:
+								controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value)
+								this.log.info('Failed to stop charging')
+								this.log.debug(response.data)
+								break
+						}
 					}
 					callback()
 					break

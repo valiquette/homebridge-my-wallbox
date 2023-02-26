@@ -110,10 +110,10 @@ wallboxAPI.prototype={
 						}
 					 }
 			}).catch(err=>{
-				this.log.debug(JSON.stringify(err,null,2))
+				//this.log.debug(JSON.stringify(err,null,2))
 				this.log.error('Error refreshing token %s', err.message)
 				if(err.response){
-					this.log.warn(JSON.stringify(err.response.data,null,2))
+					//this.log.warn(JSON.stringify(err.response.data,null,2))
 					return err.response
 				}
 				else{
@@ -128,7 +128,7 @@ wallboxAPI.prototype={
 				if(this.platform.showAPIMessages){this.log.debug('refresh token response',JSON.stringify(response.data,null,2))}
 			}
 			return response
-		}catch(err) {this.log.error('Error refreshing token \n%s', err)}
+	}catch(err) {this.log.error('Error refreshing token \n%s', err)}
 	},
 
 	getId: async function(token, id){
