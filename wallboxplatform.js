@@ -19,6 +19,7 @@ class wallboxPlatform {
 		this.outlet=new outlet(this, log, config)
 		this.control=new control(this, log, config)
 		this.enumeration=enumeration
+		this.timeStamp=new Date()
 
 		this.log=log
 		this.config=config
@@ -269,14 +270,17 @@ class wallboxPlatform {
 		}
 
 	async startLiveUpdate(device){
+		//check for duplicate call
+		let delta=new Date()-this.timeStamp
+		if(delta>500){ //call within 1/2 sec will be skipped
+			this.timeStamp=new Date()
+		}
+		else{
+			this.log.debug('Skipped new live update due to duplicate call, timestamp delta %s ms', delta )
+			return
+		}
 		clearInterval(this.lastInterval)
 		//get new token
-		this.log.warn('token ttl',this.ttlTime)
-		this.log.warn(Math.round((this.ttl-Date.now())/60/1000))
-		let timeLeft=Math.round((this.ttl-Date.now())/60/1000)
-		this.log.warn('live update',this.liveUpdate,this.liveTimeout)
-		this.log.warn('refresh token  %s********************%s', this.refreshToken.substring(0,35),this.refreshToken.substring((this.refreshToken).length-35))
-		//if(timeLeft<1440 && !this.liveUpdate){
 			let x=await this.getNewToken(this.refreshToken)
 			if(this,this.showUserMessages){
 				this.log.info('Starting live update')
@@ -285,8 +289,8 @@ class wallboxPlatform {
 				this.log.debug('Starting live update')
 				this.log.debug(x)
 			}
-		//}
-		let startTime = new Date().getTime() //live refresh
+		this.liveUpdate=true
+		let startTime = new Date().getTime() //live refresh start time
 		if(!this.liveUpdate){this.log.debug('Live update started')}
 		this.liveUpdate=true
 			let interval = setInterval(async()=>{

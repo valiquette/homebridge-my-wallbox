@@ -3,6 +3,7 @@
 ## 1.1.16
 Fix
 - Fixed slow to update warnings.
+- Fixed 401 errors from Homebridge UI, HomeKit did not experiance this issue.
 Update
 - Updated switch and outlet naming.
 - Code cleanup.
