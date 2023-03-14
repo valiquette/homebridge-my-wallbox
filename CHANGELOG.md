@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.17
+Update
+- Updated Readme
+- Code cleanup
+
 ## 1.1.16
 Fix
 - Fixed slow to update warnings.
@@ -7,6 +12,7 @@ Fix
 Update
 - Updated switch and outlet naming.
 - Code cleanup.
+- Bumped dependencies.
 
 ## 1.1.15
 Fix

@@ -29,7 +29,7 @@ Other hardware models/types may still work with this plugin and any feedback on 
 	"name": "Wallbox",
 	"email": "username@email.com",
 	"password": "password",
-	"refreshRate": 1,
+	"refreshInterval": 1,
 	"liveRefreshRate": 2,
 	"liveRefreshTimeout": 20,
 	"cars": [
@@ -40,9 +40,10 @@ Other hardware models/types may still work with this plugin and any feedback on 
 		}
 	],
 	"locationAddress": "123 Easy St",
-    "showControls": 3,
-    "socSensor": true,
-    "showAPIMessages": false,
+	"showControls": 5,
+	"socSensor": true,
+	"showAPIMessages": false,
+	"showUserMessages": false,
 	"_bridge": {
 		"username": "0E:6C:D4:F2:16:EB",
 		"port": 35919

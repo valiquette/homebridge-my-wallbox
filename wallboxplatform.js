@@ -33,7 +33,7 @@ class wallboxPlatform {
 		this.retryWait=config.retryWait || 60 //sec
 		this.retryMax=config.retryMax || 3 //attempts
 		this.retryAttempt=0
-		this.refreshRate=config.refreshRate || 24 //hour
+		this.refreshInterval=config.refreshInterval || 24 //hour
 		this.liveTimeout=config.liveRefreshTimeout || 2 //min
 		this.liveRefresh=config.liveRefreshRate || 20 //sec
 		this.lastInterval
@@ -266,13 +266,13 @@ class wallboxPlatform {
 						this.log.warn('%s software update %s is available',checkUpdate.name, checkUpdate.software.latestVersion)
 					}
 				}catch(err){this.log.error('Error checking for update. \n%s', err)}
-			}, this.refreshRate*60*60*1000)
+			}, this.refreshInterval*60*60*1000)
 		}
 
 	async startLiveUpdate(device){
 		//check for duplicate call
 		let delta=new Date()-this.timeStamp
-		if(delta>500){ //call within 1/2 sec will be skipped
+		if(delta>500){ //calls within 1/2 sec will be skipped as duplicate
 			this.timeStamp=new Date()
 		}
 		else{

@@ -26,8 +26,8 @@
 				"placeholder": "password",
 				"required": true
 			},
-			"refreshRate": {
-				"title": "Hourly Refresh Rate",
+			"refreshInterval": {
+				"title": "Hourly Refresh Interval",
 				"description": "Polling time in hours to refresh data. Default 24",
 				"type": "integer",
 				"minimum": 1,
@@ -212,7 +212,7 @@
 			"expandable": true,
 			"flex-flow": "row wrap",
 			"items": [
-				"refreshRate",
+				"refreshInterval",
 				"liveRefreshTimeout",
 				"liveRefreshRate"
 			]
