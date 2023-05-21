@@ -501,7 +501,7 @@ class wallboxPlatform {
   //** REQUIRED - Homebridge will call the "configureAccessory" method once for every cached accessory restored
   //**
   configureAccessory(accessory){
-    // Added cached devices to the accessories arrary
+    // Added cached devices to the accessories array
     this.log.debug('Found cached accessory %s', accessory.displayName)
     this.accessories[accessory.UUID]=accessory
   }

@@ -1,5 +1,11 @@
 # Changes
 
+## 1.1.18
+Update
+-  Added suppport for node.js v20.
+-  Removed support for node.js v14.
+-  Bumped dependencies.
+
 ## 1.1.17
 Update
 - Updated Readme
