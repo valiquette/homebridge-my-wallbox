@@ -9,7 +9,6 @@ let control=require('./devices/control')
 let enumeration=require('./enumerations')
 
 class wallboxPlatform {
-
 	constructor(log, config, api){
 		this.wallboxapi=new wallboxAPI(this, log)
 		this.lockMechanism=new lockMechanism(this, log)
@@ -70,9 +69,9 @@ class wallboxPlatform {
 		}
 		}
 
-	identify(){
-		this.log.info('Identify wallbox!')
-	}
+		identify(){
+			this.log.info('Identify wallbox!')
+		}
 
 	async getDevices(){
 		try{
