@@ -5,8 +5,6 @@ let rax = require('retry-axios') //v3.0.0 ES6 only
 let userEndpoint = 'https://user-api.wall-box.com'
 let endpoint = 'https://api.wall-box.com'
 
-module.exports = wallboxAPI
-
 class wallboxAPI {
 	constructor(platform, log) {
 		this.log = log
@@ -435,3 +433,4 @@ class wallboxAPI {
 		} catch (err) { this.log.error('Error with remote action \n%s', err)}
 	}
 }
+module.exports = wallboxAPI

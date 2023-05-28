@@ -504,7 +504,5 @@ class wallboxPlatform {
     this.log.debug('Found cached accessory %s', accessory.displayName)
     this.accessories[accessory.UUID]=accessory
   }
-
 }
-
 module.exports=wallboxPlatform

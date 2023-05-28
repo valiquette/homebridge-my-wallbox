@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.19
+Update
+-  Refactor
+
 ## 1.1.18
 Update
 -  Added suppport for node.js v20.
