@@ -49,11 +49,13 @@ class lockMechanism {
 			.on('get', this.getLockCurrentState.bind(this, device, lockService))
 		//.on('set', this.setLockCurrentState.bind(this, device, lockService))
 	}
+
 	async getLockCurrentState(device, lockService, callback) {
 		let currentValue = lockService.getCharacteristic(Characteristic.LockCurrentState).value
 		callback(null, currentValue)
 		this.platform.startLiveUpdate(device) //may slowdown plugin
 	}
+
 	setLockCurrentState(device, lockService, value, callback) {
 		this.log.info('Set State %s', lockService.getCharacteristic(Characteristic.Name).value)
 		if (lockService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
@@ -71,10 +73,12 @@ class lockMechanism {
 			callback()
 		}
 	}
+
 	getLockTargetState(lockService, callback) {
 		let currentValue = lockService.getCharacteristic(Characteristic.LockTargetState).value
 		callback(null, currentValue)
 	}
+	
 	async setLockTargetState(device, lockService, value, callback) {
 		if (lockService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')

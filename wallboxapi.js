@@ -11,6 +11,7 @@ class wallboxAPI {
 		this.platform = platform
 		this.interceptorId = rax.attach()
 	}
+	
 	async checkEmail(email) {
 		this.platform.apiCount++
 		try {
@@ -37,6 +38,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error checking email \n%s', err)}
 	}
+
 	async signin(email, password) {
 		this.platform.apiCount++
 		let b64encoded = (Buffer.from(email + ':' + password, 'utf8')).toString('base64')
@@ -78,6 +80,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving token \n%s', err)}
 	}
+
 	async refresh(refreshToken) {
 		this.platform.apiCount++
 		try {
@@ -126,6 +129,7 @@ class wallboxAPI {
 			return response
 		} catch (err) { this.log.error('Error refreshing token \n%s', err)}
 	}
+
 	async getId(token, id) {
 		this.platform.apiCount++
 		try {
@@ -153,6 +157,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving ID \n%s', err)}
 	}
+
 	async getUser(token, userId) {
 		this.platform.apiCount++
 		try {
@@ -180,6 +185,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving user ID \n%s', err)}
 	}
+
 	async getChargerGroups(token) {
 		this.platform.apiCount++
 		try {
@@ -207,6 +213,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving charger groups \n%s', err)}
 	}
+
 	async getChargerStatus(token, chargerId) {
 		this.platform.apiCount++
 		try {
@@ -248,6 +255,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving charger status \n%s', err)}
 	}
+
 	async getChargerData(token, chargerId) {
 		this.platform.apiCount++
 		try {
@@ -275,6 +283,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving charger data \n%s', err)}
 	}
+
 	async getChargerConfig(token, chargerId) {
 		this.platform.apiCount++
 		try {
@@ -302,6 +311,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving charger config \n%s', err)}
 	}
+
 	async getLastSession(token, chargerId) {
 		this.platform.apiCount++
 		try {
@@ -329,6 +339,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error retrieving charger session \n%s', err)}
 	}
+
 	async lock(token, chargerId, value) {
 		this.platform.apiCount++
 		try {
@@ -360,6 +371,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error setting lock state config \n%s', err)}
 	}
+
 	async setAmps(token, chargerId, value) {
 		this.platform.apiCount++
 		try {
@@ -391,6 +403,7 @@ class wallboxAPI {
 			}
 		} catch (err) { this.log.error('Error setting amperage \n%s', err)}
 	}
+
 	async remoteAction(token, chargerId, value) {
 		this.platform.apiCount++
 		try {

@@ -67,11 +67,11 @@ class wallboxPlatform {
 				this.getDevices()
 			}.bind(this))
 		}
-		}
+	}
 
-		identify(){
-			this.log.info('Identify wallbox!')
-		}
+	identify(){
+		this.log.info('Identify wallbox!')
+	}
 
 	async getDevices(){
 		try{
