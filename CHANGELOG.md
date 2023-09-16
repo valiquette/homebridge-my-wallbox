@@ -2,7 +2,8 @@
 
 ## 1.1.19
 Update
--  Refactor
+-  Refactor code to allow use of cached accessories
+-  Bumped dependencies.
 
 ## 1.1.18
 Update

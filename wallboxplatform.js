@@ -141,50 +141,109 @@ class wallboxPlatform {
 					let chargerData=await this.wallboxapi.getChargerData(this.token, charger).catch(err=>{this.log.error('Failed to get charger data for build. \n%s', err)})
 					let uuid=UUIDGen.generate(chargerData.uid)
 					let chargerConfig=await this.wallboxapi.getChargerConfig(this.token, charger).catch(err=>{this.log.error('Failed to get charger configs for build. \n%s', err)})
-					if(this.accessories[uuid]){
-						this.api.unregisterPlatformAccessories(PluginName, PlatformName, [this.accessories[uuid]])
-						delete this.accessories[uuid]
-					}
-					this.log.debug('Registering platform accessory')
 
-					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,chargerConfig,uuid)
-					let lockService=this.lockMechanism.createLockService(chargerData)
+					let lockAccessory=this.lockMechanism.createLockAccessory(chargerData,chargerConfig,uuid,this.accessories[uuid])
+
+					let lockService=lockAccessory.getService(Service.LockMechanism)
+					//this.lockMechanism.createLockService(chargerData)
 					this.lockMechanism.configureLockService(chargerData, lockService)
-					lockAccessory.addService(lockService)
 
 					if(this.showSensor){
 						let sensorService=this.sensor.createSensorService(chargerData,'SOC')
 						this.sensor.configureSensorService(chargerData,sensorService)
+						let service=lockAccessory.getService(Service.HumiditySensor)
+						if(!service){
+							lockAccessory.addService(sensorService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(sensorService)
-						lockAccessory.addService(sensorService)
 					}
+					else{
+						let service=lockAccessory.getService(Service.HumiditySensor)
+						if(service){
+							lockAccessory.removeService(service)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
+					}
+
 					if(this.showBattery){
 						let batteryService=this.battery.createBatteryService(chargerData)
 						this.battery.configureBatteryService(batteryService)
+						let service=lockAccessory.getService(Service.Battery)
+						if(!service){
+							lockAccessory.addService(batteryService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(batteryService)
-						lockAccessory.addService(batteryService)
 						this.amps[batteryService.subtype]=chargerData.maxChgCurrent
 					}
+					else{
+						let service=lockAccessory.getService(Service.Battery)
+						if(service){
+							lockAccessory.removeService(service)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
+					}
+
 					if(this.showControls==5 || this.showControls==4){
 						let outletService=this.outlet.createOutletService(chargerData,'Start/Pause')
 						this.outlet.configureOutletService(chargerData, outletService)
+						let service=lockAccessory.getService(Service.Outlet)
+						if(!service){
+							lockAccessory.addService(outletService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(outletService)
-						lockAccessory.addService(outletService)
 					}
+					else{
+						let service=lockAccessory.getService(Service.Outlet)
+						if(service){
+							lockAccessory.removeService(service)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
+					}
+
 					if(this.showControls==3 || this.showControls==4){
 						let controlService=this.control.createControlService(chargerData,'Charging Amps')
 						this.control.configureControlService(chargerData, controlService)
+						let service=lockAccessory.getService(Service.Thermostat)
+						if(!service){
+							lockAccessory.addService(controlService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
-						lockAccessory.addService(controlService)
 					}
+					else{
+						let service=lockAccessory.getService(Service.Thermostat)
+						if(service){
+							lockAccessory.removeService(service)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
+					}
+
 					if(this.showControls==1 || this.showControls==4){
 						let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
 						this.basicSwitch.configureSwitchService(chargerData, switchService)
+						let service=lockAccessory.getService(Service.Switch)
+						if(!service){
+							lockAccessory.addService(switchService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 						lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
-						lockAccessory.addService(switchService)
 					}
-					this.accessories[uuid]=lockAccessory
-					this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
+					else{
+						let service=lockAccessory.getService(Service.Switch)
+						if(service){
+							lockAccessory.removeService(service)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
+					}
+
+					if(!this.accessories[uuid]){
+						this.log.debug('Registering platform accessory')
+						this.accessories[uuid]=lockAccessory
+						this.api.registerPlatformAccessories(PluginName, PlatformName, [lockAccessory])
+					}
 					this.setChargerRefresh(chargerData)
 					this.getStatus(chargerData.id)
 				})
@@ -203,14 +262,7 @@ class wallboxPlatform {
 			}
 		}
 	}
-	/*
-	setTokenRefresh(ttl){ // no longer called
-			ttl=Math.round((ttl-Date.now())/1000)
-			setTimeout(async()=>{
-			this.getNewToken(this.refreshToken)
-		},ttl*1000*.9) //will refresh with  ~2.4 hours before a 24 hour clock expires
-	}
-	*/
+
 	async getNewToken(token){
 		try{
 			let refresh=await this.wallboxapi.refresh(token).catch(err=>{this.log.error('Failed to refresh token. \n%s', err)})

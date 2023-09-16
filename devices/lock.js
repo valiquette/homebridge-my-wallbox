@@ -8,11 +8,22 @@ class lockMechanism {
 		this.wallboxapi = new wallboxAPI(this, log)
 	}
 
-	createLockAccessory(device, config, uuid) {
-		this.log.info('Adding lock for %s charger ', device.name)
-		this.log.debug('create Lock Accessory %s', device.name)
-		let newPlatformAccessory = new PlatformAccessory(device.name, uuid)
-		newPlatformAccessory.getService(Service.AccessoryInformation)
+	createLockAccessory(device, config, uuid, platformAccessory) {
+		if(!platformAccessory){
+			this.log.info('Adding lock for %s charger ', device.name)
+			this.log.debug('create Lock Accessory %s', device.name)
+			platformAccessory = new PlatformAccessory(device.name, uuid)
+			let lockService = new Service.LockMechanism(device.name, device.id)
+			lockService.addCharacteristic(Characteristic.Identifier)
+			lockService.addCharacteristic(Characteristic.StatusFault)
+			lockService.addCharacteristic(Characteristic.OutletInUse)
+			lockService.addCharacteristic(Characteristic.AccessoryIdentifier)
+			platformAccessory.addService(lockService)
+		}
+		else{
+			this.log.debug('update Lock Accessory %s', device.name)
+		}
+		platformAccessory.getService(Service.AccessoryInformation)
 			.setCharacteristic(Characteristic.Name, device.name)
 			.setCharacteristic(Characteristic.Manufacturer, "Wallbox")
 			.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
@@ -21,14 +32,22 @@ class lockMechanism {
 			.setCharacteristic(Characteristic.FirmwareRevision, config.software.currentVersion)
 			.setCharacteristic(Characteristic.HardwareRevision, config.part_number)
 			.setCharacteristic(Characteristic.SoftwareRevision, packageJson.version)
-		return newPlatformAccessory
+
+		platformAccessory.getService(Service.LockMechanism)
+			.setCharacteristic(Characteristic.Name, device.name)
+			.setCharacteristic(Characteristic.Identifier, device.serialNumber)
+			.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
+			.setCharacteristic(Characteristic.OutletInUse, false)
+			.setCharacteristic(Characteristic.AccessoryIdentifier, device.uniqueIdentifier)
+
+		return platformAccessory
 	}
 
 	createLockService(device) {
 		this.log.debug("create lock service for %s, serial number %s", device.name, device.serialNumber)
 		let lockService = new Service.LockMechanism(device.name, device.id)
 		lockService
-			.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
+			.setCharacteristic(Characteristic.Identifier, device.serialNumber)
 			.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
 			.setCharacteristic(Characteristic.OutletInUse, false)
 			.setCharacteristic(Characteristic.AccessoryIdentifier, device.uid)
@@ -78,7 +97,7 @@ class lockMechanism {
 		let currentValue = lockService.getCharacteristic(Characteristic.LockTargetState).value
 		callback(null, currentValue)
 	}
-	
+
 	async setLockTargetState(device, lockService, value, callback) {
 		if (lockService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
@@ -87,7 +106,7 @@ class lockMechanism {
 			if (value == true) {
 				this.log.info('Locking %s', lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.SECURED)
-				let chargerId = lockService.getCharacteristic(Characteristic.SerialNumber).value
+				let chargerId = lockService.getCharacteristic(Characteristic.Identifier).value
 				let response = await this.wallboxapi.lock(this.platform.token, chargerId, value).catch(err => { this.log.error('Failed to unlock. \n%s', err) })
 				try {
 					switch (response.status) {
@@ -106,7 +125,7 @@ class lockMechanism {
 			else {
 				this.log.info('Unlocking %s', lockService.getCharacteristic(Characteristic.Name).value)
 				lockService.getCharacteristic(Characteristic.LockTargetState).updateValue(Characteristic.LockTargetState.UNSECURED)
-				let chargerId = lockService.getCharacteristic(Characteristic.SerialNumber).value
+				let chargerId = lockService.getCharacteristic(Characteristic.Identifier).value
 				let response = await this.wallboxapi.lock(this.platform.token, chargerId, value).catch(err => { this.log.error('Failed to unlock. \n%s', err) })
 				try {
 					switch (response.status) {

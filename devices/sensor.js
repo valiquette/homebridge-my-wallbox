@@ -12,8 +12,7 @@ class sensor {
 		this.log.debug("create new sensor")
 		let humiditySensor = new Service.HumiditySensor(type, device.id)
 		let stateOfCharge = 0
-		if (device.stateOfCharge)
-			(stateOfCharge = device.stateOfCharge)
+		if (device.stateOfCharge) { stateOfCharge = device.stateOfCharge}
 		humiditySensor = new Service.HumiditySensor(type, device.id)
 		humiditySensor
 			.setCharacteristic(Characteristic.Name, device.name + ' ' + type)
