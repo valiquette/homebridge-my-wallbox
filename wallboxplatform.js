@@ -332,14 +332,14 @@ class wallboxPlatform {
 		}
 		clearInterval(this.lastInterval)
 		//get new token
-			let x=await this.getNewToken(this.refreshToken)
-			if(this,this.showUserMessages){
-				this.log.info('Starting live update')
-				this.log.info(x)
-			}else{
-				this.log.debug('Starting live update')
-				this.log.debug(x)
-			}
+		let x=await this.getNewToken(this.refreshToken)
+		if(this.showUserMessages){
+			this.log.info('Starting live update')
+			this.log.info(x)
+		}else{
+			this.log.debug('Starting live update')
+			this.log.debug(x)
+		}
 		this.liveUpdate=true
 		let startTime = new Date().getTime() //live refresh start time
 		if(!this.liveUpdate){this.log.debug('Live update started')}
@@ -348,7 +348,7 @@ class wallboxPlatform {
 				if(new Date().getTime() - startTime > this.liveTimeout*60*1000){
 					clearInterval(interval)
 					this.liveUpdate=false
-					if(this,this.showUserMessages){
+					if(this.showUserMessages){
 						this.log.info('Live update stopped')
 					}
 					else{
