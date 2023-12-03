@@ -1,5 +1,14 @@
 # Changes
 
+## 1.1.20
+Update
+-  Bumped dependencies.
+
+## 1.1.19
+Update
+-  Refactor code to allow use of cached accessories
+-  Bumped dependencies.
+
 ## 1.1.18
 Update
 -  Added suppport for node.js v20.

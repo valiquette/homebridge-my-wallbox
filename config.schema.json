@@ -46,7 +46,7 @@
 			},
 			"liveRefreshRate": {
 				"title": "Live Refresh Rate",
-				"description": "Polling time in seconds to refresh data during an active session. Default 20 <br>Setting this less than 20 seconds may casue display to toggle back once if the car is slow to respond.",
+				"description": "Polling time in seconds to refresh data during an active session. Default 20 <br>Setting this less than 20 seconds may cause display to toggle back once if the car is slow to respond.",
 				"type": "integer",
 				"minimum": 5,
 				"maximum": 30,
