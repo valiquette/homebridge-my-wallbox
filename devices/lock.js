@@ -27,7 +27,7 @@ class lockMechanism {
 			.setCharacteristic(Characteristic.Name, device.name)
 			.setCharacteristic(Characteristic.Manufacturer, "Wallbox")
 			.setCharacteristic(Characteristic.SerialNumber, device.serialNumber)
-			.setCharacteristic(Characteristic.Model, device.chargerType)
+			.setCharacteristic(Characteristic.Model, this.platform.model_name)
 			.setCharacteristic(Characteristic.Identify, true)
 			.setCharacteristic(Characteristic.FirmwareRevision, config.software.currentVersion)
 			.setCharacteristic(Characteristic.HardwareRevision, config.part_number)

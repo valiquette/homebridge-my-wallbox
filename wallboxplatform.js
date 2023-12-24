@@ -46,6 +46,7 @@ class wallboxPlatform {
 		this.showUserMessages=config.showUserMessages ? config.showUserMessages : false
 		this.id
 		this.userId
+		this.model_name
 		this.cars=config.cars
 		this.locationName=config.locationName
 		this.locationMatch
@@ -104,7 +105,6 @@ class wallboxPlatform {
 				this.log.debug('Token will expire on %s, %s minutes ',new Date(signin.data.attributes.ttl).toLocaleString(), Math.round((signin.data.attributes.ttl-Date.now())/60/1000))
 				this.log.debug('Refresh Token will expire on %s, %s days ',new Date(signin.data.attributes.refresh_token_ttl).toLocaleString(), Math.round((signin.data.attributes.refresh_token_ttl-Date.now())/24/60/60/1000))
 				}
-			//this.setTokenRefresh(signin.data.attributes.ttl) //disabled for new ondemand method
 			//get get user id
 			let userId=await this.wallboxapi.getId(this.token, this.id).catch(err=>{this.log.error('Failed to get userId for build. \n%s', err)})
 			this.log.debug('Found user ID %s', userId.data.attributes.value)
@@ -113,7 +113,10 @@ class wallboxPlatform {
 			let groups=await this.wallboxapi.getChargerGroups(this.token).catch(err=>{this.log.error('Failed to get groups for build. \n%s', err)})
 			groups.result.groups.forEach((group)=>{
 				this.log.info('Found group for %s ', group.name)
-				group.chargers.forEach((charger)=>{
+				group.chargers.forEach(async(charger)=>{
+					//get model info
+					let chargerInfo=await this.wallboxapi.getCharger(this.token, group.uid).catch(err=>{this.log.error('Failed to get charger info for build. \n%s', err)})
+					this.model_name=chargerInfo.data[0].attributes.model_name
 					this.log.info('Found charger %s with software %s',charger.name, charger.software.currentVersion)
 					if(charger.software.updateAvailable){
 						this.log.warn('%s software update %s is available',charger.name, charger.software.latestVersion)
@@ -280,7 +283,6 @@ class wallboxPlatform {
 				this.refreshToken=refresh.data.data.attributes.refresh_token
 				this.ttl=refresh.data.data.attributes.ttl
 				this.ttlTime=Math.round((refresh.data.data.attributes.ttl-Date.now())/60/1000)
-				//this.setTokenRefresh(refresh.data.data.attributes.ttl) //disabled
 				return 'Refreshed exsisting token'
 			}
 			if(refresh.status==401){
@@ -332,14 +334,15 @@ class wallboxPlatform {
 		}
 		clearInterval(this.lastInterval)
 		//get new token
-		let x=await this.getNewToken(this.refreshToken)
-		if(this.showUserMessages){
-			this.log.info('Starting live update')
-			this.log.info(x)
-		}else{
-			this.log.debug('Starting live update')
-			this.log.debug(x)
-		}
+			let x=await this.getNewToken(this.refreshToken)
+			if(this,this.showUserMessages){
+				this.log.info('Starting live update')
+				this.log.info(x)
+			}
+			else{
+				this.log.debug('Starting live update')
+				this.log.debug(x)
+			}
 		this.liveUpdate=true
 		let startTime = new Date().getTime() //live refresh start time
 		if(!this.liveUpdate){this.log.debug('Live update started')}
@@ -369,7 +372,8 @@ class wallboxPlatform {
 				let car=this.cars.filter(charger=>(charger.chargerName==wallboxChargerName))
 				if(car[0]){
 					this.batterySize=car[0].kwH
-				}else {
+				}
+				else{
 					this.log.warn('Unable to find charger named "%s" as configured in the plugin settings for car "%s" with charger "%s". Please check your plugin settings.', wallboxChargerName, this.cars[0].carName, this.cars[0].chargerName)
 				}
 			}

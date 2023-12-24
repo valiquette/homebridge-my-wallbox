@@ -2,11 +2,12 @@
 
 ## 1.1.20
 Update
--  Bumped dependencies.
+-  Minor code cleanup
+-  Fix model type characteritic.
+-  Added support for cached accessories
 
 ## 1.1.19
 Update
--  Refactor code to allow use of cached accessories
 -  Bumped dependencies.
 
 ## 1.1.18

@@ -29,7 +29,7 @@ Other hardware models/types may still work with this plugin and any feedback on 
 	"name": "Wallbox",
 	"email": "username@email.com",
 	"password": "password",
-	"refreshInterval": 1,
+	"refreshInterval": 24,
 	"liveRefreshRate": 2,
 	"liveRefreshTimeout": 20,
 	"cars": [

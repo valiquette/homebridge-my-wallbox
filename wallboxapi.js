@@ -11,7 +11,7 @@ class wallboxAPI {
 		this.platform = platform
 		this.interceptorId = rax.attach()
 	}
-	
+
 	async checkEmail(email) {
 		this.platform.apiCount++
 		try {
@@ -211,7 +211,35 @@ class wallboxAPI {
 				if (this.platform.showAPIMessages) { this.log.debug('get charger groups data response', JSON.stringify(response.data, null, 2))}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error retrieving charger groups \n%s', err)}
+		}catch(err) {this.log.error('Error retrieving charger groups \n%s', err)}
+	}
+
+	async getCharger(token, group_id){
+		this.platform.apiCount++
+		try {
+			this.log.debug('Retrieving charger')
+			let response = await axios({
+					method: 'get',
+					baseURL: endpoint,
+					url: `/perseus/organizations/${group_id}/chargers`,
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`,
+						'User-Agent': `${PluginName}/${PluginVersion}`,
+						'Accept-Encoding': 'gzip,deflate,compress'
+					},
+					responseType: 'json'
+			}).catch(err=>{
+				this.log.debug(JSON.stringify(err,null,2))
+				this.log.error('Error getting charger %s', err.message)
+				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+				return err.response
+			})
+			if(response.status==200){
+				if(this.platform.showAPIMessages){this.log.debug('get chargerdata response',JSON.stringify(response.data,null,2))}
+				return response.data
+			}
+		}catch(err) {this.log.error('Error retrieving charger \n%s', err)}
 	}
 
 	async getChargerStatus(token, chargerId) {
