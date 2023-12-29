@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.21
+Fix
+-  Fix bug with pause switch/outlet.
+-  Bumped dependencies.
+
 ## 1.1.20
 Update
 -  Minor code cleanup

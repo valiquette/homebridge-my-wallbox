@@ -4,7 +4,7 @@ class sensor {
 	constructor(platform, log) {
 		this.log = log
 		this.platform = platform
-		this.wallboxapi = new wallboxAPI(this, log)
+		this.wallboxapi = new wallboxAPI(this.platform, log)
 	}
 
 	createSensorService(device, type) {

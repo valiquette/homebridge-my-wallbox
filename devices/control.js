@@ -5,7 +5,7 @@ class control {
 	constructor(platform, log, config) {
 		this.log = log
 		this.platform = platform
-		this.wallboxapi = new wallboxAPI(this, log)
+		this.wallboxapi = new wallboxAPI(this.platform, log)
 		this.enumeration = enumeration
 	}
 
@@ -73,6 +73,8 @@ class control {
 	}
 
 	async setControlAmps(device, controlService, value, callback) {
+		let statusCode
+		let currentMode
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
 		}
@@ -148,6 +150,8 @@ class control {
 	}
 
 	async setControlState(device, controlService, value, callback) {
+		let statusCode
+		let currentMode
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
 		}
@@ -157,7 +161,7 @@ class control {
 			try {
 				statusCode = chargerData.status
 				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
-				this.log.debug('checking statuscod = %s, current mode = %s', statusCode, currentMode)
+				this.log.debug('checking status code = %s, current mode = %s', statusCode, currentMode)
 			} catch (error) {
 				currentMode = 'unknown'
 				this.log.error('failed current mode check')

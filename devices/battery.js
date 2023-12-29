@@ -4,9 +4,9 @@ class battery {
 	constructor(platform, log) {
 		this.log = log
 		this.platform = platform
-		this.wallboxapi = new wallboxAPI(this, log)
+		this.wallboxapi = new wallboxAPI(this.platform, log)
 	}
-	
+
 	createBatteryService(device) {
 		this.log.info('Adding battery service for %s charger ', device.name)
 		this.log.debug("create battery service for %s", device.name)

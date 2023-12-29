@@ -189,14 +189,17 @@ class wallboxPlatform {
 					}
 
 					if(this.showControls==5 || this.showControls==4){
-						let outletService=this.outlet.createOutletService(chargerData,'Start/Pause')
-						this.outlet.configureOutletService(chargerData, outletService)
-						let service=lockAccessory.getService(Service.Outlet)
-						if(!service){
+						let outletService=lockAccessory.getService(Service.Outlet)
+						if(!outletService){
+							let outletService=this.outlet.createOutletService(chargerData,'Start/Pause')
+							this.outlet.configureOutletService(chargerData, outletService)
 							lockAccessory.addService(outletService)
 							this.api.updatePlatformAccessories([lockAccessory])
 						}
-						lockAccessory.getService(Service.LockMechanism).addLinkedService(outletService)
+						else{
+							this.outlet.configureOutletService(chargerData, outletService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 					}
 					else{
 						let service=lockAccessory.getService(Service.Outlet)
@@ -207,14 +210,17 @@ class wallboxPlatform {
 					}
 
 					if(this.showControls==3 || this.showControls==4){
-						let controlService=this.control.createControlService(chargerData,'Charging Amps')
-						this.control.configureControlService(chargerData, controlService)
-						let service=lockAccessory.getService(Service.Thermostat)
-						if(!service){
+						let controlService=lockAccessory.getService(Service.Thermostat)
+						if(!controlService){
+							let controlService=this.control.createControlService(chargerData,'Charging Amps')
+							this.control.configureControlService(chargerData, controlService)
 							lockAccessory.addService(controlService)
 							this.api.updatePlatformAccessories([lockAccessory])
 						}
-						lockAccessory.getService(Service.LockMechanism).addLinkedService(controlService)
+						else{
+							this.control.configureControlService(chargerData, controlService)
+							this.api.updatePlatformAccessories([lockAccessory])
+						}
 					}
 					else{
 						let service=lockAccessory.getService(Service.Thermostat)
@@ -225,14 +231,17 @@ class wallboxPlatform {
 					}
 
 					if(this.showControls==1 || this.showControls==4){
-						let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
-						this.basicSwitch.configureSwitchService(chargerData, switchService)
-						let service=lockAccessory.getService(Service.Switch)
-						if(!service){
+						let switchService=lockAccessory.getService(Service.Switch)
+						if(!switchService){
+							let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
+							this.basicSwitch.configureSwitchService(chargerData, switchService)
 							lockAccessory.addService(switchService)
+							lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
+						}
+						else{
+							this.basicSwitch.configureSwitchService(chargerData, switchService)
 							this.api.updatePlatformAccessories([lockAccessory])
 						}
-						lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)
 					}
 					else{
 						let service=lockAccessory.getService(Service.Switch)
