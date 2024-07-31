@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.22
+Update
+-  Bumped dependencies.
+-  homebridge 2.0 support
+
 ## 1.1.21
 Fix
 -  Fix bug with pause switch/outlet.

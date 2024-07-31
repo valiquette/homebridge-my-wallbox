@@ -62,11 +62,11 @@ class lockMechanism {
 		lockService
 			.getCharacteristic(Characteristic.LockTargetState)
 			.on('get', this.getLockTargetState.bind(this, lockService))
-			.on('set', this.setLockTargetState.bind(this, device, lockService))
+			.on('set', this.setLockTargetState.bind(this, lockService))
 		lockService
 			.getCharacteristic(Characteristic.LockCurrentState)
 			.on('get', this.getLockCurrentState.bind(this, device, lockService))
-		//.on('set', this.setLockCurrentState.bind(this, device, lockService))
+		 //.on('set', this.setLockCurrentState.bind(this, device, lockService))
 	}
 
 	async getLockCurrentState(device, lockService, callback) {
@@ -98,7 +98,7 @@ class lockMechanism {
 		callback(null, currentValue)
 	}
 
-	async setLockTargetState(device, lockService, value, callback) {
+	async setLockTargetState(lockService, value, callback) {
 		if (lockService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
 		}

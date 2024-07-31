@@ -191,7 +191,7 @@ class wallboxPlatform {
 					if(this.showControls==5 || this.showControls==4){
 						let outletService=lockAccessory.getService(Service.Outlet)
 						if(!outletService){
-							let outletService=this.outlet.createOutletService(chargerData,'Start/Pause')
+							let outletService=this.outlet.createOutletService(chargerData,'Start Pause')
 							this.outlet.configureOutletService(chargerData, outletService)
 							lockAccessory.addService(outletService)
 							this.api.updatePlatformAccessories([lockAccessory])
@@ -233,7 +233,7 @@ class wallboxPlatform {
 					if(this.showControls==1 || this.showControls==4){
 						let switchService=lockAccessory.getService(Service.Switch)
 						if(!switchService){
-							let switchService=this.basicSwitch.createSwitchService(chargerData,'Start/Pause')
+							let switchService=this.basicSwitch.createSwitchService(chargerData,'Start Pause')
 							this.basicSwitch.configureSwitchService(chargerData, switchService)
 							lockAccessory.addService(switchService)
 							lockAccessory.getService(Service.LockMechanism).addLinkedService(switchService)

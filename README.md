@@ -13,6 +13,7 @@
 
 This plugin has only been tested or verified against hardware model/types
 - Wallbox Pulsar Plus
+- Copper SB
 - Has only been tested to date with email based accounts, Google and Apple logins are currently not supported.
 
 Other hardware models/types may still work with this plugin and any feedback on devices not listed or status codes is welcome.
