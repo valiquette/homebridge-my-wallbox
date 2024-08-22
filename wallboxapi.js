@@ -23,6 +23,7 @@ class wallboxAPI {
 				headers: {
 					'Content-Type': 'application/json',
 					'User-Agent': `${PluginName}/${PluginVersion}`,
+					'Partner': 'wallbox',
 					'Accept-Encoding': 'gzip,deflate,compress'
 				},
 				responseType: 'json'
