@@ -22,8 +22,8 @@ class wallboxAPI {
 				url: `/users/emails/${email}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'User-Agent': `${PluginName}/${PluginVersion}`,
 					'Partner': 'wallbox',
+					'User-Agent': `${PluginName}/${PluginVersion}`,
 					'Accept-Encoding': 'gzip,deflate,compress'
 				},
 				responseType: 'json'

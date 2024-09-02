@@ -102,11 +102,11 @@
 						"enum": [0]
 					},
 					{
-						"title": "Lock with Start/Pause as Switch",
+						"title": "Lock with Charging as Switch",
 						"enum": [1]
 					},
 					{
-						"title": "Lock with Start/Pause as Outlet",
+						"title": "Lock with Charging as Outlet",
 						"enum": [5]
 					},
 					{

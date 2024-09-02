@@ -1,5 +1,11 @@
 # Changes
 
+## 1.1.23
+Update
+-  Bumped dependencies.
+-  Updated header info for API call
+-  Renamed Start/pause to Charging
+
 ## 1.1.22
 Update
 -  Bumped dependencies.
