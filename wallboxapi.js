@@ -24,9 +24,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Partner: 'wallbox',
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error checking email %s', err.message)
@@ -60,7 +60,7 @@ class wallboxAPI {
 					Authorization: `Basic ${b64encoded}`,
 					Partner: 'wallbox',
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
 				responseType: 'json',
 				raxConfig: {
@@ -73,14 +73,14 @@ class wallboxAPI {
 						[400, 400],
 						[401, 401],
 						[404, 404],
-						[500, 599],
+						[500, 599]
 					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
 						let cfg = rax.getConfig(err)
 						this.log.warn(`${err.message} retrying signin , attempt #${cfg.currentRetryAttempt}`)
-					},
-				},
+					}
+				}
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error signing in and getting token %s', err.message)
@@ -112,7 +112,7 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${refreshToken}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
 				responseType: 'json',
 				raxConfig: {
@@ -124,14 +124,14 @@ class wallboxAPI {
 						[100, 199],
 						[400, 400],
 						[404, 404],
-						[500, 599],
+						[500, 599]
 					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
 						let cfg = rax.getConfig(err)
 						this.log.warn(`${err.message} retrying refresh token, attempt #${cfg.currentRetryAttempt}`)
-					},
-				},
+					}
+				}
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error refreshing token %s', err.message)
@@ -169,9 +169,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting ID %s', err.message)
@@ -203,9 +203,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting user ID %s', err.message)
@@ -237,9 +237,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger groups %s', err.message)
@@ -271,9 +271,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger %s', err.message)
@@ -305,7 +305,7 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
 				responseType: 'json',
 				raxConfig: {
@@ -317,14 +317,14 @@ class wallboxAPI {
 						[100, 199],
 						[400, 400],
 						[404, 404],
-						[500, 599],
+						[500, 599]
 					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
 						let cfg = rax.getConfig(err)
 						this.log.warn(`${err.message} retrying get status, attempt #${cfg.currentRetryAttempt}`)
-					},
-				},
+					}
+				}
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger status %s', err.message)
@@ -356,9 +356,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger data %s', err.message)
@@ -390,9 +390,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger config %s', err.message)
@@ -424,9 +424,9 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress',
+					'Accept-Encoding': 'gzip,deflate,compress'
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger session %s', err.message)
@@ -458,12 +458,12 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,br',
+					'Accept-Encoding': 'gzip,deflate,br'
 				},
 				data: {
-					locked: value,
+					locked: value
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error locking charger config %s', err.message)
@@ -498,12 +498,12 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,br',
+					'Accept-Encoding': 'gzip,deflate,br'
 				},
 				data: {
-					maxChargingCurrent: value,
+					maxChargingCurrent: value
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error setting amperage %s', err.message)
@@ -548,12 +548,12 @@ class wallboxAPI {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,br',
+					'Accept-Encoding': 'gzip,deflate,br'
 				},
 				data: {
-					action: action,
+					action: action
 				},
-				responseType: 'json',
+				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error with remote action %s', err.message)
