@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.24
+Update
+-  Bumped dependencies.
+-  Code cleanup
+
 ## 1.1.23
 Update
 -  Bumped dependencies.

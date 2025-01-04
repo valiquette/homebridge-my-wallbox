@@ -1,5 +1,5 @@
-let wallboxAPI=require('../wallboxapi')
-let enumeration=require('../enumerations')
+let wallboxAPI = require('../wallboxapi')
+let enumeration = require('../enumerations')
 
 class basicOutlet {
 	constructor(platform, log, config) {
@@ -14,7 +14,9 @@ class basicOutlet {
 		this.log.debug('create new outlet')
 		let outletService = new Service.Outlet(type, device.id)
 		let outletOn = false
-		if (device.statusDescription == "Charging") { outletOn = true}
+		if (device.statusDescription == 'Charging') {
+			outletOn = true
+		}
 		outletService
 			.setCharacteristic(Characteristic.On, outletOn)
 			.setCharacteristic(Characteristic.Name, device.name + ' ' + type)
@@ -23,11 +25,9 @@ class basicOutlet {
 	}
 
 	configureOutletService(device, outletService) {
-		this.log.debug("configured %s outlet for %s", outletService.getCharacteristic(Characteristic.Name).value, device.name)
-		outletService
-			.getCharacteristic(Characteristic.On)
-			.on('get', this.getOutletValue.bind(this, outletService))
-			.on('set', this.setOutletValue.bind(this, device, outletService))
+		this.log.debug('configured %s outlet for %s', outletService.getCharacteristic(Characteristic.Name).value, device.name)
+		outletService.getCharacteristic(Characteristic.On).on('get', this.getOutletValue.bind(this, outletService))
+		outletService.getCharacteristic(Characteristic.On).on('set', this.setOutletValue.bind(this, device, outletService))
 	}
 
 	async setOutletValue(device, outletService, value, callback) {
@@ -35,10 +35,11 @@ class basicOutlet {
 		let currentMode
 		if (outletService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			outletService.getCharacteristic(Characteristic.On).updateValue(value)
-			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => { this.log.error('Failed to get charger data. \n%s', err) })
+			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => {
+				this.log.error('Failed to get charger data. \n%s', err)
+			})
 			try {
 				statusCode = chargerData.status
 				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
@@ -54,8 +55,7 @@ class basicOutlet {
 					if (statusCode == 210) {
 						this.log.info('Charger must be unlocked for this operation')
 						this.log.warn('Car Connected. Unlock charger to start session')
-					}
-					else {
+					} else {
 						this.log.info('Car must be connected for this operation')
 					}
 					outletService.getCharacteristic(Characteristic.On).updateValue(!value)
@@ -65,9 +65,10 @@ class basicOutlet {
 					this.log.info('Waiting for a charge request')
 					if (outletService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => { this.log.error('Failed to resume. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => {
+							this.log.error('Failed to resume. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								outletService.getCharacteristic(Characteristic.On).updateValue(value)
@@ -86,9 +87,10 @@ class basicOutlet {
 					this.log.debug('toggle outlet %s', outletService.getCharacteristic(Characteristic.Name).value)
 					if (outletService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => { this.log.error('Failed to pause. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => {
+							this.log.error('Failed to pause. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								outletService.getCharacteristic(Characteristic.On).updateValue(value)
@@ -121,8 +123,7 @@ class basicOutlet {
 	getOutletValue(outletService, callback) {
 		if (outletService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			let currentValue = outletService.getCharacteristic(Characteristic.On).value
 			callback(null, currentValue)
 		}

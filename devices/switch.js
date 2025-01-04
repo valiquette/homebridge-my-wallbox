@@ -1,5 +1,5 @@
-let wallboxAPI=require('../wallboxapi')
-let enumeration=require('../enumerations')
+let wallboxAPI = require('../wallboxapi')
+let enumeration = require('../enumerations')
 
 class basicSwitch {
 	constructor(platform, log, config) {
@@ -14,7 +14,9 @@ class basicSwitch {
 		this.log.debug('create new switch')
 		let switchService = new Service.Switch(type, device.id)
 		let switchOn = false
-		if (device.statusDescription == "Charging") { switchOn = true}
+		if (device.statusDescription == 'Charging') {
+			switchOn = true
+		}
 		switchService
 			.setCharacteristic(Characteristic.On, switchOn)
 			.setCharacteristic(Characteristic.Name, device.name + ' ' + type)
@@ -23,11 +25,8 @@ class basicSwitch {
 	}
 
 	configureSwitchService(device, switchService) {
-		this.log.debug("configured %s switch for %s", switchService.getCharacteristic(Characteristic.Name).value, device.name)
-		switchService
-			.getCharacteristic(Characteristic.On)
-			.on('get', this.getSwitchValue.bind(this, switchService))
-			.on('set', this.setSwitchValue.bind(this, device, switchService))
+		this.log.debug('configured %s switch for %s', switchService.getCharacteristic(Characteristic.Name).value, device.name)
+		switchService.getCharacteristic(Characteristic.On).on('get', this.getSwitchValue.bind(this, switchService)).on('set', this.setSwitchValue.bind(this, device, switchService))
 	}
 
 	async setSwitchValue(device, switchService, value, callback) {
@@ -35,10 +34,11 @@ class basicSwitch {
 		let currentMode
 		if (switchService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			switchService.getCharacteristic(Characteristic.On).updateValue(value)
-			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => { this.log.error('Failed to get charger data. \n%s', err) })
+			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => {
+				this.log.error('Failed to get charger data. \n%s', err)
+			})
 			try {
 				statusCode = chargerData.status
 				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
@@ -54,8 +54,7 @@ class basicSwitch {
 					if (statusCode == 210) {
 						this.log.info('Charger must be unlocked for this operation')
 						this.log.warn('Car Connected. Unlock charger to start session')
-					}
-					else {
+					} else {
 						this.log.info('Car must be connected for this operation')
 					}
 					switchService.getCharacteristic(Characteristic.On).updateValue(!value)
@@ -65,9 +64,10 @@ class basicSwitch {
 					this.log.info('Waiting for a charge request')
 					if (switchService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => { this.log.error('Failed to resume. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => {
+							this.log.error('Failed to resume. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								switchService.getCharacteristic(Characteristic.On).updateValue(value)
@@ -86,9 +86,10 @@ class basicSwitch {
 					this.log.debug('toggle switch %s', switchService.getCharacteristic(Characteristic.Name).value)
 					if (switchService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => { this.log.error('Failed to pause. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => {
+							this.log.error('Failed to pause. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								switchService.getCharacteristic(Characteristic.On).updateValue(value)
@@ -121,8 +122,7 @@ class basicSwitch {
 	getSwitchValue(switchService, callback) {
 		if (switchService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			let currentValue = switchService.getCharacteristic(Characteristic.On).value
 			callback(null, currentValue)
 		}

@@ -1,4 +1,4 @@
-let wallboxAPI=require('../wallboxapi')
+let wallboxAPI = require('../wallboxapi')
 
 class battery {
 	constructor(platform, log) {
@@ -9,10 +9,12 @@ class battery {
 
 	createBatteryService(device) {
 		this.log.info('Adding battery service for %s charger ', device.name)
-		this.log.debug("create battery service for %s", device.name)
+		this.log.debug('create battery service for %s', device.name)
 		let batteryStatus
 		let stateOfCharge = 0
-		if (device.stateOfCharge) { stateOfCharge = device.stateOfCharge}
+		if (device.stateOfCharge) {
+			stateOfCharge = device.stateOfCharge
+		}
 		batteryStatus = new Service.Battery(device.name, device.id)
 		batteryStatus
 			.setCharacteristic(Characteristic.StatusLowBattery, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL)
@@ -23,9 +25,8 @@ class battery {
 	}
 
 	configureBatteryService(batteryStatus) {
-		this.log.debug("configured battery service for %s", batteryStatus.getCharacteristic(Characteristic.Name).value)
-		batteryStatus
-			.getCharacteristic(Characteristic.StatusLowBattery)
+		this.log.debug('configured battery service for %s', batteryStatus.getCharacteristic(Characteristic.Name).value)
+		batteryStatus.getCharacteristic(Characteristic.StatusLowBattery)
 	}
 
 	getStatusLowBattery(batteryStatus, callback) {

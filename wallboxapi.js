@@ -22,27 +22,33 @@ class wallboxAPI {
 				url: `/users/emails/${email}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Partner': 'wallbox',
+					Partner: 'wallbox',
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error checking email %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('check email response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('check email response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error checking email \n%s', err)}
+		} catch (err) {
+			this.log.error('Error checking email \n%s', err)
+		}
 	}
 
 	async signin(email, password) {
 		this.platform.apiCount++
-		let b64encoded = (Buffer.from(email + ':' + password, 'utf8')).toString('base64')
+		let b64encoded = Buffer.from(email + ':' + password, 'utf8').toString('base64')
 		try {
 			this.log.debug('Retrieving token')
 			let response = await axios({
@@ -51,10 +57,10 @@ class wallboxAPI {
 				url: `/users/signin`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Basic ${b64encoded}`,
-					'Partner': 'wallbox',
+					Authorization: `Basic ${b64encoded}`,
+					Partner: 'wallbox',
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
 				responseType: 'json',
 				raxConfig: {
@@ -62,24 +68,36 @@ class wallboxAPI {
 					noResponseRetries: 2,
 					retryDelay: 100,
 					httpMethodsToRetry: ['GET', 'PUT'],
-					statusCodesToRetry: [[100, 199], [400, 400], [401, 401], [404, 404], [500, 599]],
+					statusCodesToRetry: [
+						[100, 199],
+						[400, 400],
+						[401, 401],
+						[404, 404],
+						[500, 599],
+					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
 						let cfg = rax.getConfig(err)
 						this.log.warn(`${err.message} retrying signin , attempt #${cfg.currentRetryAttempt}`)
-					}
-				}
+					},
+				},
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error signing in and getting token %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('signin response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('signin response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error retrieving token \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving token \n%s', err)
+		}
 	}
 
 	async refresh(refreshToken) {
@@ -92,9 +110,9 @@ class wallboxAPI {
 				url: `/users/refresh-token`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${refreshToken}`,
+					Authorization: `Bearer ${refreshToken}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
 				responseType: 'json',
 				raxConfig: {
@@ -102,33 +120,41 @@ class wallboxAPI {
 					noResponseRetries: 3,
 					retryDelay: 100,
 					httpMethodsToRetry: ['GET', 'PUT'],
-					statusCodesToRetry: [[100, 199], [400, 400], [404, 404], [500, 599]],
+					statusCodesToRetry: [
+						[100, 199],
+						[400, 400],
+						[404, 404],
+						[500, 599],
+					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
 						let cfg = rax.getConfig(err)
 						this.log.warn(`${err.message} retrying refresh token, attempt #${cfg.currentRetryAttempt}`)
-					}
-				}
+					},
+				},
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error refreshing token %s', err.message)
 				if (err.response) {
 					this.log.warn(JSON.stringify(err.response.data, null, 2))
 					return err.response
-				}
-				else {
+				} else {
 					return err
 				}
 			})
 			if (response.code) {
 				this.log.warn('no network', response.code)
-				return { 'status': false }
+				return {status: false}
 			}
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('refresh token response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('refresh token response', JSON.stringify(response.data, null, 2))
+				}
 			}
 			return response
-		} catch (err) { this.log.error('Error refreshing token \n%s', err)}
+		} catch (err) {
+			this.log.error('Error refreshing token \n%s', err)
+		}
 	}
 
 	async getId(token, id) {
@@ -141,22 +167,28 @@ class wallboxAPI {
 				url: `/v4/users/${id}/id`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting ID %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('get ID response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get ID response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error retrieving ID \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving ID \n%s', err)
+		}
 	}
 
 	async getUser(token, userId) {
@@ -169,22 +201,28 @@ class wallboxAPI {
 				url: `/v2/user/${userId}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting user ID %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('get user response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get user response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error retrieving user ID \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving user ID \n%s', err)
+		}
 	}
 
 	async getChargerGroups(token) {
@@ -197,50 +235,62 @@ class wallboxAPI {
 				url: `/v3/chargers/groups`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger groups %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('get charger groups data response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get charger groups data response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving charger groups \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving charger groups \n%s', err)
+		}
 	}
 
-	async getCharger(token, group_id){
+	async getCharger(token, group_id) {
 		this.platform.apiCount++
 		try {
 			this.log.debug('Retrieving charger')
 			let response = await axios({
-					method: 'get',
-					baseURL: endpoint,
-					url: `/perseus/organizations/${group_id}/chargers`,
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${token}`,
-						'User-Agent': `${PluginName}/${PluginVersion}`,
-						'Accept-Encoding': 'gzip,deflate,compress'
-					},
-					responseType: 'json'
-			}).catch(err=>{
-				this.log.debug(JSON.stringify(err,null,2))
+				method: 'get',
+				baseURL: endpoint,
+				url: `/perseus/organizations/${group_id}/chargers`,
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+					'User-Agent': `${PluginName}/${PluginVersion}`,
+					'Accept-Encoding': 'gzip,deflate,compress',
+				},
+				responseType: 'json',
+			}).catch(err => {
+				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger %s', err.message)
-				if(err.response){this.log.warn(JSON.stringify(err.response.data,null,2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
-			if(response.status==200){
-				if(this.platform.showAPIMessages){this.log.debug('get chargerdata response',JSON.stringify(response.data,null,2))}
+			if (response.status == 200) {
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get chargerdata response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		}catch(err) {this.log.error('Error retrieving charger \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving charger \n%s', err)
+		}
 	}
 
 	async getChargerStatus(token, chargerId) {
@@ -253,9 +303,9 @@ class wallboxAPI {
 				url: `/chargers/status/${chargerId}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
 				responseType: 'json',
 				raxConfig: {
@@ -263,18 +313,25 @@ class wallboxAPI {
 					noResponseRetries: 2,
 					retryDelay: 100,
 					httpMethodsToRetry: ['GET', 'PUT'],
-					statusCodesToRetry: [[100, 199], [400, 400], [404, 404], [500, 599]],
+					statusCodesToRetry: [
+						[100, 199],
+						[400, 400],
+						[404, 404],
+						[500, 599],
+					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
 						let cfg = rax.getConfig(err)
 						this.log.warn(`${err.message} retrying get status, attempt #${cfg.currentRetryAttempt}`)
-					}
-				}
+					},
+				},
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger status %s', err.message)
 				if (err.response) {
-					if (err.response.status != 504) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+					if (err.response.status != 504) {
+						this.log.warn(JSON.stringify(err.response.data, null, 2))
+					}
 				}
 				return err.response
 			})
@@ -282,7 +339,9 @@ class wallboxAPI {
 				//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
 				return response
 			}
-		} catch (err) { this.log.error('Error retrieving charger status \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving charger status \n%s', err)
+		}
 	}
 
 	async getChargerData(token, chargerId) {
@@ -295,22 +354,28 @@ class wallboxAPI {
 				url: `/v2/charger/${chargerId}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger data %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('get charger data response', JSON.stringify(response.data.data.chargerData, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get charger data response', JSON.stringify(response.data.data.chargerData, null, 2))
+				}
 				return response.data.data.chargerData
 			}
-		} catch (err) { this.log.error('Error retrieving charger data \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving charger data \n%s', err)
+		}
 	}
 
 	async getChargerConfig(token, chargerId) {
@@ -323,22 +388,28 @@ class wallboxAPI {
 				url: `/chargers/config/${chargerId}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger config %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('get charger config response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get charger config response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error retrieving charger config \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving charger config \n%s', err)
+		}
 	}
 
 	async getLastSession(token, chargerId) {
@@ -351,22 +422,28 @@ class wallboxAPI {
 				url: `v4/charger-last-sessions`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,compress'
+					'Accept-Encoding': 'gzip,deflate,compress',
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error getting charger session %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('get charger session response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get charger session response', JSON.stringify(response.data, null, 2))
+				}
 				return response.data
 			}
-		} catch (err) { this.log.error('Error retrieving charger session \n%s', err)}
+		} catch (err) {
+			this.log.error('Error retrieving charger session \n%s', err)
+		}
 	}
 
 	async lock(token, chargerId, value) {
@@ -379,26 +456,34 @@ class wallboxAPI {
 				url: `/v2/charger/${chargerId}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,br'
+					'Accept-Encoding': 'gzip,deflate,br',
 				},
 				data: {
-					"locked": value
+					locked: value,
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error locking charger config %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
-			if (response.status && this.platform.showAPIMessages) { this.log.debug('put lock response status', response.status)}
+			if (response.status && this.platform.showAPIMessages) {
+				this.log.debug('put lock response status', response.status)
+			}
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('put lock response', response.status)}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('put lock response', response.status)
+				}
 				return response
 			}
-		} catch (err) { this.log.error('Error setting lock state config \n%s', err)}
+		} catch (err) {
+			this.log.error('Error setting lock state config \n%s', err)
+		}
 	}
 
 	async setAmps(token, chargerId, value) {
@@ -411,26 +496,34 @@ class wallboxAPI {
 				url: `/v2/charger/${chargerId}`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,br'
+					'Accept-Encoding': 'gzip,deflate,br',
 				},
 				data: {
-					"maxChargingCurrent": value
+					maxChargingCurrent: value,
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error setting amperage %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
-			if (response.status && this.platform.showAPIMessages) { this.log.debug('put setAmps response status', response.status)}
+			if (response.status && this.platform.showAPIMessages) {
+				this.log.debug('put setAmps response status', response.status)
+			}
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('put setAmps response {maxChargingCurrent:%s}', JSON.stringify(response.data.data.chargerData.maxChargingCurrent, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('put setAmps response {maxChargingCurrent:%s}', JSON.stringify(response.data.data.chargerData.maxChargingCurrent, null, 2))
+				}
 				return response
 			}
-		} catch (err) { this.log.error('Error setting amperage \n%s', err)}
+		} catch (err) {
+			this.log.error('Error setting amperage \n%s', err)
+		}
 	}
 
 	async remoteAction(token, chargerId, value) {
@@ -439,11 +532,11 @@ class wallboxAPI {
 			this.log.debug('Setting charging state for %s to %s', chargerId, value)
 			let action
 			switch (value) {
-				case "resume":
-				case "start":
+				case 'resume':
+				case 'start':
 					action = 1
 					break
-				case "pause":
+				case 'pause':
 					action = 2
 					break
 			}
@@ -453,26 +546,34 @@ class wallboxAPI {
 				url: `/v3/chargers/${chargerId}/remote-action`,
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`,
+					Authorization: `Bearer ${token}`,
 					'User-Agent': `${PluginName}/${PluginVersion}`,
-					'Accept-Encoding': 'gzip,deflate,br'
+					'Accept-Encoding': 'gzip,deflate,br',
 				},
 				data: {
-					"action": action
+					action: action,
 				},
-				responseType: 'json'
+				responseType: 'json',
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
 				this.log.error('Error with remote action %s', err.message)
-				if (err.response) { this.log.warn(JSON.stringify(err.response.data, null, 2))}
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
 				return err.response
 			})
-			if (response.status && this.platform.showAPIMessages) { this.log.debug('post remote action response status', response.status)}
+			if (response.status && this.platform.showAPIMessages) {
+				this.log.debug('post remote action response status', response.status)
+			}
 			if (response.status == 200) {
-				if (this.platform.showAPIMessages) { this.log.debug('post remote action response', JSON.stringify(response.data, null, 2))}
+				if (this.platform.showAPIMessages) {
+					this.log.debug('post remote action response', JSON.stringify(response.data, null, 2))
+				}
 				return response
 			}
-		} catch (err) { this.log.error('Error with remote action \n%s', err)}
+		} catch (err) {
+			this.log.error('Error with remote action \n%s', err)
+		}
 	}
 }
 module.exports = wallboxAPI

@@ -1,5 +1,5 @@
-let wallboxAPI=require('../wallboxapi')
-let enumeration=require('../enumerations')
+let wallboxAPI = require('../wallboxapi')
+let enumeration = require('../enumerations')
 
 class control {
 	constructor(platform, log, config) {
@@ -14,9 +14,8 @@ class control {
 		this.log.debug('create new control')
 		let currentAmps
 		if (this.platform.useFahrenheit) {
-			currentAmps = ((device.maxAvailableCurrent - 32 + .01) * 5 / 9).toFixed(2)
-		}
-		else {
+			currentAmps = (((device.maxAvailableCurrent - 32 + 0.01) * 5) / 9).toFixed(2)
+		} else {
 			currentAmps = device.maxAvailableCurrent
 		}
 		let controlService = new Service.Thermostat(type, device.id)
@@ -38,22 +37,25 @@ class control {
 		if (this.platform.useFahrenheit) {
 			min = -14.5
 			max = 4.5 //4.45
-			step = .5
-			if (device.maxAvailableCurrent == 48) { max = 9}
-		}
-		else {
+			step = 0.5
+			if (device.maxAvailableCurrent == 48) {
+				max = 9
+			}
+		} else {
 			min = 6
 			max = 40
 			step = 1
-			if (device.maxAvailableCurrent == 48) { max = 48}
+			if (device.maxAvailableCurrent == 48) {
+				max = 48
+			}
 		}
 
-		this.log.debug("configured %s control for %s", controlService.getCharacteristic(Characteristic.Name).value, device.name)
+		this.log.debug('configured %s control for %s', controlService.getCharacteristic(Characteristic.Name).value, device.name)
 		controlService
 			.getCharacteristic(Characteristic.TargetHeatingCoolingState)
 			.setProps({
 				minValue: 0,
-				maxValue: 1
+				maxValue: 1,
 			})
 			.on('get', this.getControlState.bind(this, controlService))
 			.on('set', this.setControlState.bind(this, device, controlService))
@@ -62,14 +64,11 @@ class control {
 			.setProps({
 				minValue: min,
 				maxValue: max,
-				minStep: step
+				minStep: step,
 			})
 			.on('get', this.getControlAmps.bind(this, controlService))
 			.on('set', this.setControlAmps.bind(this, device, controlService))
-		controlService
-			.getCharacteristic(Characteristic.TemperatureDisplayUnits)
-			.on('get', this.getControlUnits.bind(this, controlService))
-			.on('set', this.setControlUnits.bind(this, device, controlService))
+		controlService.getCharacteristic(Characteristic.TemperatureDisplayUnits).on('get', this.getControlUnits.bind(this, controlService)).on('set', this.setControlUnits.bind(this, device, controlService))
 	}
 
 	async setControlAmps(device, controlService, value, callback) {
@@ -77,17 +76,17 @@ class control {
 		let currentMode
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			controlService.getCharacteristic(Characteristic.TargetTemperature).updateValue(value)
 			let amps
 			if (this.platform.useFahrenheit) {
-				amps = (value * 1.8 + 32 + .01).toFixed(2)
-			}
-			else {
+				amps = (value * 1.8 + 32 + 0.01).toFixed(2)
+			} else {
 				amps = value
 			}
-			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => { this.log.error('Failed to get charger data. \n%s', err) })
+			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => {
+				this.log.error('Failed to get charger data. \n%s', err)
+			})
 			try {
 				statusCode = chargerData.status
 				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
@@ -117,9 +116,10 @@ class control {
 					this.log.debug('set amps to %s', amps)
 					if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.setAmps(this.platform.token, device.id, amps).catch(err => { this.log.error('Failed to set amps. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.setAmps(this.platform.token, device.id, amps).catch(err => {
+							this.log.error('Failed to set amps. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								controlService.getCharacteristic(Characteristic.CurrentTemperature).updateValue(controlService.getCharacteristic(Characteristic.TargetTemperature).value)
@@ -154,10 +154,11 @@ class control {
 		let currentMode
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(value)
-			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => { this.log.error('Failed to get charger data. \n%s', err) })
+			let chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => {
+				this.log.error('Failed to get charger data. \n%s', err)
+			})
 			try {
 				statusCode = chargerData.status
 				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
@@ -172,8 +173,7 @@ class control {
 					if (statusCode == 210) {
 						this.log.info('Charger must be unlocked for this operation')
 						this.log.warn('Car Connected. Unlock charger to start session')
-					}
-					else {
+					} else {
 						this.log.info('Car must be connected for this operation')
 					}
 					controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value)
@@ -183,9 +183,10 @@ class control {
 					this.log.info('Waiting for a charge request')
 					if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => { this.log.error('Failed to resume. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => {
+							this.log.error('Failed to resume. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).value)
@@ -204,9 +205,10 @@ class control {
 					this.log.debug('toggle control %s', controlService.getCharacteristic(Characteristic.Name).value)
 					if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 						callback('error')
-					}
-					else {
-						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => { this.log.error('Failed to pause. \n%s', err) })
+					} else {
+						let response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => {
+							this.log.error('Failed to pause. \n%s', err)
+						})
 						switch (response.status) {
 							case 200:
 								controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(controlService.getCharacteristic(Characteristic.TargetHeatingCoolingState).value)
@@ -239,11 +241,10 @@ class control {
 	setControlUnits(device, controlService, value, callback) {
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			//this.platform.useFahrenheit=value
 			//controlService.getCharacteristic(Characteristic.TemperatureDisplayUnits).value=value
-			this.log.debug("change unit value to %s", value)
+			this.log.debug('change unit value to %s', value)
 			callback()
 		}
 	}
@@ -251,8 +252,7 @@ class control {
 	getControlState(controlService, callback) {
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			let currentValue = controlService.getCharacteristic(Characteristic.CurrentHeatingCoolingState).value
 			callback(null, currentValue)
 		}
@@ -261,8 +261,7 @@ class control {
 	getControlAmps(controlService, callback) {
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			let currentValue = controlService.getCharacteristic(Characteristic.CurrentTemperature).value
 			callback(null, currentValue)
 		}
@@ -271,8 +270,7 @@ class control {
 	getControlUnits(controlService, callback) {
 		if (controlService.getCharacteristic(Characteristic.StatusFault).value == Characteristic.StatusFault.GENERAL_FAULT) {
 			callback('error')
-		}
-		else {
+		} else {
 			let currentValue = controlService.getCharacteristic(Characteristic.TemperatureDisplayUnits).value
 			callback(null, currentValue)
 		}
