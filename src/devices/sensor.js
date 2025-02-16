@@ -1,4 +1,4 @@
-let wallboxAPI = require('../wallboxapi')
+let wallboxAPI = require('../wallboxapi').default
 
 class sensor {
 	constructor(platform, log) {

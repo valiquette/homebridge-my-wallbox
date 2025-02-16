@@ -1,11 +1,17 @@
-let wallboxAPI = require('../wallboxapi')
-let packageJson = require('../package.json')
+let wallboxAPI = require('../wallboxapi').default
+let packageJson = require('homebridge-my-wallbox/package.json')
+let Service
+let Characteristic
+let genUUID
 
 class lockMechanism {
-	constructor(platform, log) {
+	constructor(platform, log, api) {
 		this.log = log
 		this.platform = platform
 		this.wallboxapi = new wallboxAPI(this.platform, log)
+		Service = api.hap.Service
+		Characteristic = api.hap.Characteristic
+		genUUID = api.hap.uuid.generate
 	}
 
 	createLockAccessory(device, config, uuid, platformAccessory) {
@@ -42,17 +48,6 @@ class lockMechanism {
 			.setCharacteristic(Characteristic.AccessoryIdentifier, device.uniqueIdentifier)
 
 		return platformAccessory
-	}
-
-	createLockService(device) {
-		this.log.debug('create lock service for %s, serial number %s', device.name, device.serialNumber)
-		let lockService = new Service.LockMechanism(device.name, device.id)
-		lockService
-			.setCharacteristic(Characteristic.Identifier, device.serialNumber)
-			.setCharacteristic(Characteristic.StatusFault, Characteristic.StatusFault.NO_FAULT)
-			.setCharacteristic(Characteristic.OutletInUse, false)
-			.setCharacteristic(Characteristic.AccessoryIdentifier, device.uid)
-		return lockService
 	}
 
 	configureLockService(device, lockService) {

@@ -1,15 +1,16 @@
 'use strict'
-let axios = require('axios')
-let rax = require('retry-axios') //v3.0.0 ES6 only
+import axios from 'axios'
+import { attach, getConfig } from 'retry-axios' //v3.0.0 ES6 only
 
 let userEndpoint = 'https://user-api.wall-box.com'
 let endpoint = 'https://api.wall-box.com'
+let PluginName, PluginVersion ///temp for refactor
 
 class wallboxAPI {
 	constructor(platform, log) {
 		this.log = log
 		this.platform = platform
-		this.interceptorId = rax.attach()
+		this.interceptorId = attach()
 	}
 
 	async checkEmail(email) {
@@ -77,7 +78,7 @@ class wallboxAPI {
 					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
-						let cfg = rax.getConfig(err)
+						let cfg = getConfig(err)
 						this.log.warn(`${err.message} retrying signin , attempt #${cfg.currentRetryAttempt}`)
 					}
 				}
@@ -100,6 +101,41 @@ class wallboxAPI {
 		}
 	}
 
+	async me(token) {
+		this.platform.apiCount++
+		try {
+			this.log.debug('Retrieving my info')
+			let response = await axios({
+				method: 'get',
+				baseURL: userEndpoint,
+				url: `/users/me`,
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+					Partner: 'wallbox',
+					'User-Agent': `${PluginName}/${PluginVersion}`,
+					'Accept-Encoding': 'gzip,deflate,compress'
+				},
+				responseType: 'json'
+			}).catch(err => {
+				this.log.debug(JSON.stringify(err, null, 2))
+				this.log.error('Error getting my info %s', err.message)
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
+				return err.response
+			})
+			if (response.status == 200) {
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get me response', JSON.stringify(response.data, null, 2))
+				}
+				return response.data
+			}
+		} catch (err) {
+			this.log.error('Error retrieving me \n%s', err)
+		}
+	}
+
 	async refresh(refreshToken) {
 		this.platform.apiCount++
 		try {
@@ -111,6 +147,7 @@ class wallboxAPI {
 				headers: {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${refreshToken}`,
+					Partner: 'wallbox',
 					'User-Agent': `${PluginName}/${PluginVersion}`,
 					'Accept-Encoding': 'gzip,deflate,compress'
 				},
@@ -128,7 +165,7 @@ class wallboxAPI {
 					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
-						let cfg = rax.getConfig(err)
+						let cfg = getConfig(err)
 						this.log.warn(`${err.message} retrying refresh token, attempt #${cfg.currentRetryAttempt}`)
 					}
 				}
@@ -157,14 +194,14 @@ class wallboxAPI {
 		}
 	}
 
-	async getId(token, id) {
+	async spaces(token) {
 		this.platform.apiCount++
 		try {
-			this.log.debug('Retrieving User ID')
+			this.log.debug('Retrieving my info')
 			let response = await axios({
 				method: 'get',
 				baseURL: endpoint,
-				url: `/v4/users/${id}/id`,
+				url: `/v4/spaces`,
 				headers: {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
@@ -174,7 +211,7 @@ class wallboxAPI {
 				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
-				this.log.error('Error getting ID %s', err.message)
+				this.log.error('Error getting spaces %s', err.message)
 				if (err.response) {
 					this.log.warn(JSON.stringify(err.response.data, null, 2))
 				}
@@ -182,12 +219,46 @@ class wallboxAPI {
 			})
 			if (response.status == 200) {
 				if (this.platform.showAPIMessages) {
-					this.log.debug('get ID response', JSON.stringify(response.data, null, 2))
+					this.log.debug('get spaces response', JSON.stringify(response.data, null, 2))
 				}
 				return response.data
 			}
 		} catch (err) {
-			this.log.error('Error retrieving ID \n%s', err)
+			this.log.error('Error retrieving spaces \n%s', err)
+		}
+	}
+
+	async getUserId(token, userId) { // may not be needed, using user/me
+		this.platform.apiCount++
+		try {
+			this.log.debug('Retrieving id')
+			let response = await axios({
+				method: 'get',
+				baseURL: endpoint,
+				url: `/v4/users/${userId}/id`,
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`,
+					'User-Agent': `${PluginName}/${PluginVersion}`,
+					'Accept-Encoding': 'gzip,deflate,compress'
+				},
+				responseType: 'json'
+			}).catch(err => {
+				this.log.debug(JSON.stringify(err, null, 2))
+				this.log.error('Error getting id %s', err.message)
+				if (err.response) {
+					this.log.warn(JSON.stringify(err.response.data, null, 2))
+				}
+				return err.response
+			})
+			if (response.status == 200) {
+				if (this.platform.showAPIMessages) {
+					this.log.debug('get id response', JSON.stringify(response.data, null, 2))
+				}
+				return response.data
+			}
+		} catch (err) {
+			this.log.error('Error retrieving id \n%s', err)
 		}
 	}
 
@@ -208,7 +279,7 @@ class wallboxAPI {
 				responseType: 'json'
 			}).catch(err => {
 				this.log.debug(JSON.stringify(err, null, 2))
-				this.log.error('Error getting user ID %s', err.message)
+				this.log.error('Error getting user id %s', err.message)
 				if (err.response) {
 					this.log.warn(JSON.stringify(err.response.data, null, 2))
 				}
@@ -221,7 +292,7 @@ class wallboxAPI {
 				return response.data
 			}
 		} catch (err) {
-			this.log.error('Error retrieving user ID \n%s', err)
+			this.log.error('Error retrieving user id \n%s', err)
 		}
 	}
 
@@ -321,7 +392,7 @@ class wallboxAPI {
 					],
 					backoffType: 'exponential',
 					onRetryAttempt: err => {
-						let cfg = rax.getConfig(err)
+						let cfg = getConfig(err)
 						this.log.warn(`${err.message} retrying get status, attempt #${cfg.currentRetryAttempt}`)
 					}
 				}
@@ -532,13 +603,24 @@ class wallboxAPI {
 			this.log.debug('Setting charging state for %s to %s', chargerId, value)
 			let action
 			switch (value) {
-				case 'resume':
 				case 'start':
+				case 'resume':
 					action = 1
 					break
 				case 'pause':
 					action = 2
-					break
+				case 'reboot':
+					action = 3
+				break
+				case 'factory reset':
+					action = 4
+				break
+				case 'software update':
+					action = 5
+				break
+				case 'resume schedule':
+					action = 9
+				break
 			}
 			let response = await axios({
 				method: 'post',
@@ -576,4 +658,4 @@ class wallboxAPI {
 		}
 	}
 }
-module.exports = wallboxAPI
+export default wallboxAPI

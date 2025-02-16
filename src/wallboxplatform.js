@@ -1,27 +1,33 @@
 'use strict'
-let wallboxAPI = require('./wallboxapi')
+let wallboxAPI = require('homebridge-my-wallbox/src/wallboxapi').default
 let lockMechanism = require('./devices/lock')
 let battery = require('./devices/battery')
 let sensor = require('./devices/sensor')
 let basicSwitch = require('./devices/switch')
 let outlet = require('./devices/outlet')
 let control = require('./devices/control')
-let enumeration = require('./enumerations')
+let enumerations = require('./enumerations')
+let Service
+let Characteristic
+let genUUID
 
 class wallboxPlatform {
 	constructor(log, config, api) {
 		this.wallboxapi = new wallboxAPI(this, log)
-		this.lockMechanism = new lockMechanism(this, log)
-		this.battery = new battery(this, log)
-		this.sensor = new sensor(this, log)
-		this.basicSwitch = new basicSwitch(this, log, config)
-		this.outlet = new outlet(this, log, config)
-		this.control = new control(this, log, config)
-		this.enumeration = enumeration
+		this.lockMechanism = new lockMechanism(this, log, api)
+		this.battery = new battery(this, log, api)
+		this.sensor = new sensor(this, log, api)
+		this.basicSwitch = new basicSwitch(this, log, config, api)
+		this.outlet = new outlet(this, log, config, api)
+		this.control = new control(this, log, config, api)
+		this.enumeration = new enumerations.list(this, log)
 		this.timeStamp = new Date()
 
 		this.log = log
 		this.config = config
+		Service = api.hap.Service
+		Characteristic = api.hap.Characteristic
+		genUUID = api.hap.uuid.generate
 		this.email = config.email
 		this.password = config.password
 		this.token
@@ -44,12 +50,14 @@ class wallboxPlatform {
 		this.useFahrenheit = config.useFahrenheit ? config.useFahrenheit : true
 		this.showAPIMessages = config.showAPIMessages ? config.showAPIMessages : false
 		this.showUserMessages = config.showUserMessages ? config.showUserMessages : false
-		this.id
 		this.userId
+		this.userUid
 		this.model_name
 		this.cars = config.cars
 		this.locationName = config.locationName
+		this.groupName = config.groupName
 		this.locationMatch
+		this.groupMatch
 		this.accessories = []
 		this.amps = []
 		this.endTime = []
@@ -89,15 +97,15 @@ class wallboxPlatform {
 			if (email.data.attributes.status != 'confirmed') {
 				return
 			}
-			// get signin & token
+
+			//get signin & token
 			let signin = await this.wallboxapi.signin(this.email, this.password).catch(err => {
 				this.log.error('Failed to get signin for build. \n%s', err)
 			})
 			this.log.debug('Found user ID %s', signin.data.attributes.user_id)
-			//this.log.debug('Found token %s', signin.data.attributes.token)
 			this.log.debug('Found token  %s********************%s', signin.data.attributes.token.substring(0, 35), signin.data.attributes.token.substring(signin.data.attributes.token.length - 35))
 			this.log.debug('Found refresh token  %s********************%s', signin.data.attributes.refresh_token.substring(0, 35), signin.data.attributes.refresh_token.substring(signin.data.attributes.refresh_token.length - 35))
-			this.id = signin.data.attributes.user_id
+			this.userUid = signin.data.attributes.user_id
 			this.token = signin.data.attributes.token
 			this.refreshToken = signin.data.attributes.refresh_token
 			this.ttl = signin.data.attributes.ttl
@@ -111,63 +119,57 @@ class wallboxPlatform {
 				this.log.debug('Token will expire on %s, %s minutes ', new Date(signin.data.attributes.ttl).toLocaleString(), Math.round((signin.data.attributes.ttl - Date.now()) / 60 / 1000))
 				this.log.debug('Refresh Token will expire on %s, %s days ', new Date(signin.data.attributes.refresh_token_ttl).toLocaleString(), Math.round((signin.data.attributes.refresh_token_ttl - Date.now()) / 24 / 60 / 60 / 1000))
 			}
-			//get get user id
-			let userId = await this.wallboxapi.getId(this.token, this.id).catch(err => {
-				this.log.error('Failed to get userId for build. \n%s', err)
+
+			//get me
+			let me = await this.wallboxapi.me(this.token).catch(err => {
+				this.log.error('Failed to get my info for build. \n%s', err)
 			})
-			this.log.debug('Found user ID %s', userId.data.attributes.value)
-			this.userId = userId.data.attributes.value
+			this.log.debug('Found user id %s', me.data.id)
+			this.log.info('Found account for %s %s', me.data.attributes.name, me.data.attributes.surname)
+			this.userUid = me.data.id
+
 			//get groups
 			let groups = await this.wallboxapi.getChargerGroups(this.token).catch(err => {
 				this.log.error('Failed to get groups for build. \n%s', err)
 			})
-			groups.result.groups.forEach(group => {
-				this.log.info('Found group for %s ', group.name)
-				group.chargers.forEach(async charger => {
-					//get model info
-					let chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch(err => {
-						this.log.error('Failed to get charger info for build. \n%s', err)
-					})
-					this.model_name = chargerInfo.data[0].attributes.model_name
-					this.log.info('Found charger %s with software %s', charger.name, charger.software.currentVersion)
-					if (charger.software.updateAvailable) {
-						this.log.warn('%s software update %s is available', charger.name, charger.software.latestVersion)
+			groups.result.groups
+				.filter(group => {
+					if (!this.groupName || this.groupName == group.name) {
+						this.log.info('Found device in the group %s', group.name)
+						this.groupMatch = true
+					} else {
+						this.log.info('Skipping device at %s, not found at the configured group: %s', group.name, this.groupName)
+						this.groupMatch = false
 					}
+					return this.groupMatch
 				})
-			})
-			//get user
-			let user = await this.wallboxapi.getUser(this.token, this.userId).catch(err => {
-				this.log.error('Failed to get user for build. \n%s', err)
-			})
-			this.log.info('Found account for %s %s', user.data.name, user.data.surname)
-			user.data.accessConfigs
-				.filter(accessConfig => {
-					groups.result.groups.forEach(group => {
-						if (!this.locationName || (this.locationName == group.name && accessConfig.group == group.id)) {
-							this.log.info('Found device at the location: %s', group.name)
-							this.locationMatch = true
-						} else {
-							this.log.info('Skipping device at %s, not found at the configured location: %s', group.name, this.locationName)
-							this.locationMatch = false
+				.forEach(group => {
+					//this.log.info('Found group for %s ', group.name)
+					group.chargers.forEach(async charger => {
+						//get model info
+						let chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch(err => {
+							this.log.error('Failed to get charger info for build. \n%s', err)
+						})
+						this.model_name = chargerInfo.data[0].attributes.model_name
+						this.log.info('Found device in location %s', chargerInfo.data[0].attributes.location_name)
+						this.log.info('Found charger %s with software %s', charger.name, charger.software.currentVersion)
+						if (charger.software.updateAvailable) {
+							this.log.warn('%s software update %s is available', charger.name, charger.software.latestVersion)
 						}
-					})
-					return this.locationMatch
-				})
-				.forEach(accessConfig => {
-					accessConfig.chargers.forEach(async charger => {
+						this.log.info('Found charger %s with id %s in %s group', charger.name, charger.id, group.name)
+
 						//loop each charger
-						let chargerData = await this.wallboxapi.getChargerData(this.token, charger).catch(err => {
+						let chargerData = await this.wallboxapi.getChargerData(this.token, charger.id).catch(err => {
 							this.log.error('Failed to get charger data for build. \n%s', err)
 						})
-						let uuid = UUIDGen.generate(chargerData.uid)
-						let chargerConfig = await this.wallboxapi.getChargerConfig(this.token, charger).catch(err => {
+						let chargerConfig = await this.wallboxapi.getChargerConfig(this.token, charger.id).catch(err => {
 							this.log.error('Failed to get charger configs for build. \n%s', err)
 						})
 
+						let uuid = genUUID(chargerData.uid)
 						let lockAccessory = this.lockMechanism.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[uuid])
 
 						let lockService = lockAccessory.getService(Service.LockMechanism)
-						//this.lockMechanism.createLockService(chargerData)
 						this.lockMechanism.configureLockService(chargerData, lockService)
 
 						if (this.showSensor) {
@@ -272,7 +274,7 @@ class wallboxPlatform {
 					})
 				})
 			setTimeout(() => {
-				this.log.info('Wallbox platform finished loading')
+				this.log.success('Wallbox platform finished loading')
 			}, 2500)
 		} catch (err) {
 			if (this.retryAttempt < this.retryMax) {
@@ -308,7 +310,7 @@ class wallboxPlatform {
 						refresh.data.data.attributes.refresh_token.substring(refresh.data.data.attributes.refresh_token.length - 35)
 					)
 				}
-				this.id = refresh.data.data.attributes.user_id
+				this.userUid = refresh.data.data.attributes.user_id
 				this.token = refresh.data.data.attributes.token
 				this.refreshToken = refresh.data.data.attributes.refresh_token
 				this.ttl = refresh.data.data.attributes.ttl
@@ -326,14 +328,14 @@ class wallboxPlatform {
 					this.log.debug('New token  %s********************%s', signin.data.attributes.token.substring(0, 35), signin.data.attributes.token.substring(signin.data.attributes.token.length - 35))
 					this.log.debug('New refresh token  %s********************%s', signin.data.attributes.refresh_token.substring(0, 35), signin.data.attributes.refresh_token.substring(signin.data.attributes.refresh_token.length - 35))
 				}
-				this.id = signin.data.attributes.user_id
+				this.userUid = signin.data.attributes.user_id
 				this.token = signin.data.attributes.token
 				this.refreshToken = signin.data.attributes.refresh_token
 				this.ttl = signin.data.attributes.ttl
 				this.ttlTime = Math.round((signin.data.attributes.ttl - Date.now()) / 60 / 1000)
-				return 'Retrieved new token'
+				return 'Refreshed token'
 			}
-			return 'Failed to update token'
+			return 'Failed to refresh token'
 		} catch (err) {
 			this.log.error('Failed to refresh token', err)
 		}
@@ -452,7 +454,7 @@ class wallboxPlatform {
 			let statusID = charger.status_id
 			let added_kWh = charger.added_energy
 			let chargingTime = charger.charging_time
-			let uuid = UUIDGen.generate(chargerUID)
+			let uuid = genUUID(chargerUID)
 			let lockAccessory = this.accessories[uuid]
 			let controlService
 			let switchService
@@ -485,9 +487,8 @@ class wallboxPlatform {
 			text is base on web, altText is based on app
 			statusDescipton is base on observered response or past API statusDescription
 			****/
-
 			try {
-				statusInfo = this.enumeration.items.filter(result => result.status == statusID)[0]
+				statusInfo = this.enumeration.list(statusID)
 				this.log.debug('Refreshed charger with status=%s %s - %s. %s.', statusID, statusInfo.statusDescription, statusInfo.text, statusInfo.altText)
 			} catch (err) {
 				statusInfo.mode = 'unknown'

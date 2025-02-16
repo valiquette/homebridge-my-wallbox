@@ -1,12 +1,12 @@
-let wallboxAPI = require('../wallboxapi')
-let enumeration = require('../enumerations')
+let wallboxAPI = require('../wallboxapi').default
+let enumerations = require('../enumerations')
 
 class control {
 	constructor(platform, log, config) {
 		this.log = log
 		this.platform = platform
 		this.wallboxapi = new wallboxAPI(this.platform, log)
-		this.enumeration = enumeration
+		this.enumeration =  new enumerations.list(this, log)
 	}
 
 	createControlService(device, type) {
@@ -55,7 +55,7 @@ class control {
 			.getCharacteristic(Characteristic.TargetHeatingCoolingState)
 			.setProps({
 				minValue: 0,
-				maxValue: 1,
+				maxValue: 1
 			})
 			.on('get', this.getControlState.bind(this, controlService))
 			.on('set', this.setControlState.bind(this, device, controlService))
@@ -64,7 +64,7 @@ class control {
 			.setProps({
 				minValue: min,
 				maxValue: max,
-				minStep: step,
+				minStep: step
 			})
 			.on('get', this.getControlAmps.bind(this, controlService))
 			.on('set', this.setControlAmps.bind(this, device, controlService))
@@ -89,7 +89,7 @@ class control {
 			})
 			try {
 				statusCode = chargerData.status
-				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
+				currentMode = this.enumeration.list(statusCode).mode
 				this.log.debug('checking current mode = %s', currentMode)
 			} catch (error) {
 				statusCode = 'unknown'
@@ -161,7 +161,7 @@ class control {
 			})
 			try {
 				statusCode = chargerData.status
-				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
+				currentMode = this.enumeration.list(statusCode).mode
 				this.log.debug('checking status code = %s, current mode = %s', statusCode, currentMode)
 			} catch (error) {
 				currentMode = 'unknown'

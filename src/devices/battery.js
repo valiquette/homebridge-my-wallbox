@@ -1,10 +1,16 @@
-let wallboxAPI = require('../wallboxapi')
+let wallboxAPI = require('../wallboxapi').default
+let Service
+let Characteristic
+let genUUID
 
 class battery {
-	constructor(platform, log) {
+	constructor(platform, log, api) {
 		this.log = log
 		this.platform = platform
 		this.wallboxapi = new wallboxAPI(this.platform, log)
+		Service = api.hap.Service
+    Characteristic = api.hap.Characteristic
+    genUUID = api.hap.uuid.generate
 	}
 
 	createBatteryService(device) {

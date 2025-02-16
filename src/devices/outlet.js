@@ -1,12 +1,12 @@
-let wallboxAPI = require('../wallboxapi')
-let enumeration = require('../enumerations')
+let wallboxAPI = require('../wallboxapi').default
+let enumerations = require('../enumerations')
 
 class basicOutlet {
 	constructor(platform, log, config) {
 		this.log = log
 		this.platform = platform
 		this.wallboxapi = new wallboxAPI(this.platform, log)
-		this.enumeration = enumeration
+		this.enumeration =  new enumerations.list(this, log)
 	}
 
 	createOutletService(device, type) {
@@ -42,7 +42,7 @@ class basicOutlet {
 			})
 			try {
 				statusCode = chargerData.status
-				currentMode = this.enumeration.items.filter(result => result.status == statusCode)[0].mode
+				currentMode = this.enumeration.list(statusCode).mode
 				this.log.debug('checking status code = %s, current mode = %s', statusCode, currentMode)
 			} catch (error) {
 				statusCode = 'unknown'

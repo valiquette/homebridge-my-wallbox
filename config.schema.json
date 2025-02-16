@@ -3,6 +3,7 @@
 	"headerDisplay": "Homebridge plugin for WallBox Pulsar Charger",
 	"pluginType": "platform",
 	"singular": true,
+	"strictValidation": true,
 	"schema": {
 		"type": "object",
 		"properties": {
@@ -90,6 +91,12 @@
 				"required": false,
 				"placeholder": "Leave blank for all locations"
 			},
+			"groupName": {
+				"title": "Group Name",
+				"type": "string",
+				"required": false,
+				"placeholder": "Leave blank for all groups"
+			},
 			"showControls": {
 				"title": "Show Charger Controls",
 				"type": "integer",
@@ -174,7 +181,8 @@
       "type": "flex",
       "flex-flow": "row wrap",
       "items": [
-        "locationName"
+        "locationName",
+				"groupName"
       ]
     },
 		{
