@@ -3,7 +3,7 @@
 ## 1.1.24
 Update
 -  Bumped dependencies.
--  Code cleanup
+-  Refactored in Typescript
 
 ## 1.1.23
 Update

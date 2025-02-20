@@ -12,10 +12,6 @@
 		"homebridge": "^1.8.0 || ^2.0.0-beta.0",
 		"node": "^18.20.0 || ^20.18.0 || ^22.12.0"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/valiquette/homebridge-my-wallbox"
-	},
 	"keywords": [
 		"homebridge-plugin",
 		"homekit",
@@ -24,10 +20,14 @@
 	],
 	"author": "John Valiquette",
 	"license": "MIT",
+	"homepage": "https://github.com/valiquette/homebridge-my-wallbox#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/valiquette/homebridge-my-wallbox"
+	},
 	"bugs": {
 		"url": "https://github.com/valiquette/homebridge-my-wallbox/issues"
 	},
-	"homepage": "https://github.com/valiquette/homebridge-my-wallbox#readme",
 	"scripts": {
 		"build": "rimraf ./dist && tsc",
 		"lint": "eslint . --max-warnings=0",
@@ -35,15 +35,16 @@
 		"watch": "npm run build && npm link && nodemon"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.9.0",
+		"@eslint/js": "^9.20.0",
 		"@types/eslint__js": "^8.42.3",
-		"@types/node": "^22.7.4",
-		"@types/ws": "^8.5.12",
+		"@types/node": "^22.8.6",
+		"eslint": "^9.20.1",
+		"globals": "^15.15.0",
 		"homebridge": "^2.0.0-beta.0",
 		"nodemon": "^3.1.7",
 		"rimraf": "^6.0.1",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.6.2",
-		"typescript-eslint": "^8.0.1"
+		"typescript": "^5.6.3",
+		"typescript-eslint": "^8.24.1"
 	}
 }

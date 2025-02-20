@@ -1,12 +1,11 @@
 {
-	"compileOnSave": true,
   "compilerOptions": {
     "target": "ESNext",
     "lib": [
       "DOM",
       "ES2022"
     ],
-		"allowJs": true,
+		//"allowJs": true,
     "rootDir": "src",
     "module": "ESNext",
     "moduleResolution": "node",
@@ -20,8 +19,9 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    //"eslint.config.js",
+    "eslint.config.js",
     "homebridge-ui",
     "src",
-  ]
+  ],
+	"exclude": []
 }
