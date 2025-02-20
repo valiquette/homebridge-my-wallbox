@@ -189,7 +189,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 						});
 
 						const uuid = this.genUUID(chargerData.uid);
-						const lockAccessory = this.lockMechanism.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[uuid]);
+						const index = this.accessories.findIndex(accessory => accessory.UUID === uuid);
+						const lockAccessory = this.lockMechanism.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
 
 						const lockService = lockAccessory.getService(this.Service.LockMechanism);
 						this.lockMechanism.configureLockService(chargerData, lockService);
@@ -286,9 +287,9 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 							}
 						}
 
-						if (!this.accessories[uuid]) {
+						if (!this.accessories[index]) {
 							this.log.debug('Registering platform accessory');
-							this.accessories[uuid] = lockAccessory;
+							this.accessories[index] = lockAccessory;
 							this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lockAccessory]);
 						}
 						this.setChargerRefresh(chargerData);
@@ -477,7 +478,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			const added_kWh = charger.added_energy;
 			const chargingTime = charger.charging_time;
 			const uuid = this.genUUID(chargerUID);
-			const lockAccessory = this.accessories[uuid];
+			const index = this.accessories.findIndex(accessory => accessory.UUID === uuid);
+			const lockAccessory = this.accessories[index];
 			let controlService: any = null;
 			let switchService: any = null;
 			let outletService: any = null;
@@ -516,129 +518,129 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				statusInfo.mode = 'unknown';
 			}
 			switch (statusInfo.mode) {
-				case 'lockedMode':
+			case 'lockedMode':
 				// falls through
-				case 'readyMode':
-					lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
-					if (charger.statusID === 210) {
-						lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
+			case 'readyMode':
+				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
+				if (charger.statusID === 210) {
+					lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
+				} else {
+					lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(false);
+				}
+				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
+				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
+				if (this.showControls === 1 || this.showControls === 4) {
+					switchService.getCharacteristic(this.Characteristic.On).updateValue(false);
+				}
+				if (this.showControls === 5 || this.showControls === 4) {
+					outletService.getCharacteristic(this.Characteristic.On).updateValue(false);
+				}
+				if (this.showControls === 3 || this.showControls === 4) {
+					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
+					controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(false);
+					if (this.useFahrenheit) {
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
 					} else {
-						lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(false);
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
 					}
-					lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
-					lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
-					if (this.showControls === 1 || this.showControls === 4) {
-						switchService.getCharacteristic(this.Characteristic.On).updateValue(false);
+				}
+				if (this.showBattery) {
+					batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.NOT_CHARGING);
+					batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
+					if (this.showSensor) {
+						sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
 					}
-					if (this.showControls === 5 || this.showControls === 4) {
-						outletService.getCharacteristic(this.Characteristic.On).updateValue(false);
+				}
+				break;
+			case 'chargingMode':
+				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
+				lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
+				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
+				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
+				if (this.showControls === 1 || this.showControls === 4) {
+					switchService.getCharacteristic(this.Characteristic.On).updateValue(true);
+				}
+				if (this.showControls === 5 || this.showControls === 4) {
+					outletService.getCharacteristic(this.Characteristic.On).updateValue(true);
+				}
+				if (this.showControls === 3 || this.showControls === 4) {
+					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(true);
+					controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(true);
+					if (this.useFahrenheit) {
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+					} else {
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
 					}
-					if (this.showControls === 3 || this.showControls === 4) {
-						controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
-						controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(false);
-						if (this.useFahrenheit) {
-							controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-							controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-						} else {
-							controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
-							controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
-						}
+				}
+				if (this.showBattery) {
+					batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.CHARGING);
+					batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
+					if (this.showSensor) {
+						sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
 					}
-					if (this.showBattery) {
-						batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.NOT_CHARGING);
-						batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
-						if (this.showSensor) {
-							sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
-						}
+				}
+				break;
+			case 'standbyMode':
+				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
+				lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
+				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
+				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
+				if (this.showControls === 1 || this.showControls === 4) {
+					switchService.getCharacteristic(this.Characteristic.On).updateValue(false);
+				}
+				if (this.showControls === 5 || this.showControls === 4) {
+					outletService.getCharacteristic(this.Characteristic.On).updateValue(false);
+				}
+				if (this.showControls === 3 || this.showControls === 4) {
+					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
+					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
+					if (this.useFahrenheit) {
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+					} else {
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
 					}
+				}
+				if (this.showBattery) {
+					batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.NOT_CHARGING);
+					batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
+					if (this.showSensor) {
+						sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
+					}
+				}
+				if (statusID === 4) {
+					this.log.info('%s completed at %s', chargerName, new Date().toLocaleString());
+				}
+				break;
+			case 'firmwareUpdate':
+			case 'errorMode':
+				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.GENERAL_FAULT);
+				switch (statusID) {
+				case 166: //Updating':
+					this.log.info('%s updating...', chargerName);
 					break;
-				case 'chargingMode':
-					lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
-					lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
-					lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
-					lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
-					if (this.showControls === 1 || this.showControls === 4) {
-						switchService.getCharacteristic(this.Characteristic.On).updateValue(true);
-					}
-					if (this.showControls === 5 || this.showControls === 4) {
-						outletService.getCharacteristic(this.Characteristic.On).updateValue(true);
-					}
-					if (this.showControls === 3 || this.showControls === 4) {
-						controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(true);
-						controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(true);
-						if (this.useFahrenheit) {
-							controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-							controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-						} else {
-							controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
-							controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
-						}
-					}
-					if (this.showBattery) {
-						batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.CHARGING);
-						batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
-						if (this.showSensor) {
-							sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
-						}
-					}
+				case 14: //error':
+				case 15:
+					this.log.error('%s threw an error at %s!', chargerName, Date().toLocaleString());
 					break;
-				case 'standbyMode':
-					lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
-					lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
-					lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
-					lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
-					if (this.showControls === 1 || this.showControls === 4) {
-						switchService.getCharacteristic(this.Characteristic.On).updateValue(false);
-					}
-					if (this.showControls === 5 || this.showControls === 4) {
-						outletService.getCharacteristic(this.Characteristic.On).updateValue(false);
-					}
-					if (this.showControls === 3 || this.showControls === 4) {
-						controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
-						controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
-						if (this.useFahrenheit) {
-							controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-							controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-						} else {
-							controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
-							controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
-						}
-					}
-					if (this.showBattery) {
-						batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.NOT_CHARGING);
-						batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
-						if (this.showSensor) {
-							sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
-						}
-					}
-					if (statusID === 4) {
-						this.log.info('%s completed at %s', chargerName, new Date().toLocaleString());
-					}
+				case 5: //Offline':
+					this.log.warn('%s charger offline at %s! This will show as non-responding in Homekit until the connection is restored.',
+						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
 					break;
-				case 'firmwareUpdate':
-				case 'errorMode':
-					lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.GENERAL_FAULT);
-					switch (statusID) {
-						case 166: //Updating':
-							this.log.info('%s updating...', chargerName);
-							break;
-						case 14: //error':
-						case 15:
-							this.log.error('%s threw an error at %s!', chargerName, Date().toLocaleString());
-							break;
-						case 5: //Offline':
-							this.log.warn('%s charger offline at %s! This will show as non-responding in Homekit until the connection is restored.',
-								chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
-							break;
-						case 0: //'Dissconnected':
-							this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',
-								chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
-							break;
-					}
+				case 0: //'Dissconnected':
+					this.log.warn('%s disconnected at %s! This will show as non-responding in Homekit until the connection is restored.',
+						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
 					break;
-				default:
-					this.log.warn('Unknown device status received: %s: %s', statusID);
-					break;
+				}
+				break;
+			default:
+				this.log.warn('Unknown device status received: %s: %s', statusID);
+				break;
 			}
 			return charger;
 		} catch (err) {

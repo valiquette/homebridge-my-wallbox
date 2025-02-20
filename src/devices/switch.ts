@@ -9,7 +9,7 @@ export default class basicSwitch {
 	public readonly Characteristic!: typeof Characteristic;
 	constructor(
 		private readonly platform: wallboxPlatform,
-		private wallboxapi = new wallboxAPI(this.platform),
+		private wallboxapi = new wallboxAPI(platform),
 	) {}
 	createSwitchService(device: any, type: string): Service {
 		this.platform.log.info('Adding switch for %s charger ', device.name);
@@ -33,7 +33,7 @@ export default class basicSwitch {
 			.onSet(this.setSwitchValue.bind(this, device, switchService));
 	}
 
-	async setSwitchValue(device: any, switchService: Service, value: any): Promise<CharacteristicValue> {
+	async setSwitchValue(device: any, switchService: Service, value: any) {
 		let statusCode;
 		let currentMode;
 		if (switchService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {

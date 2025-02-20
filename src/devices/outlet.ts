@@ -9,7 +9,7 @@ export default class basicOutlet {
 	public readonly Characteristic!: typeof Characteristic;
 	constructor(
 		private readonly platform: wallboxPlatform,
-		private wallboxapi = new wallboxAPI(this.platform),
+		private wallboxapi = new wallboxAPI(platform),
 	) { }
 
 
@@ -35,7 +35,7 @@ export default class basicOutlet {
 			.onSet(this.setOutletValue.bind(this, device, outletService));
 	}
 
-	async setOutletValue(device: any, outletService: Service, value: any): Promise<CharacteristicValue> {
+	async setOutletValue(device: any, outletService: Service, value: any) {
 		let statusCode;
 		let currentMode;
 		if (outletService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -64,7 +64,7 @@ export default class basicOutlet {
 					this.platform.log.info('Car must be connected for this operation');
 				}
 				outletService.updateCharacteristic(this.platform.Characteristic.On, !value);
-				return outletService.getCharacteristic(this.platform.Characteristic.On).value!;
+				return;
 			case 'standbyMode':
 				this.platform.log.info('Waiting for a charge request');
 				if (outletService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -85,7 +85,7 @@ export default class basicOutlet {
 						break;
 					}
 				}
-				return outletService.getCharacteristic(this.platform.Characteristic.On).value!;
+				return;
 			case 'chargingMode':
 				this.platform.log.debug('toggle outlet %s', outletService.getCharacteristic(this.platform.Characteristic.Name).value);
 				if (outletService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -106,17 +106,17 @@ export default class basicOutlet {
 						break;
 					}
 				}
-				return outletService.getCharacteristic(this.platform.Characteristic.On).value!;
+				return;
 			case 'firmwareUpdate':
 			case 'errorMode':
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
 				this.platform.log.error('the charger %s has a fault condition with code=%s', device.name, statusCode);
 				outletService.updateCharacteristic(this.platform.Characteristic.On, !value);
-				return outletService.getCharacteristic(this.platform.Characteristic.On).value!;
+				return;
 			default:
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
 				outletService.updateCharacteristic(this.platform.Characteristic.On, !value);
-				return outletService.getCharacteristic(this.platform.Characteristic.On).value!;
+				return;
 			}
 		}
 	}

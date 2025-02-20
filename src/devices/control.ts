@@ -11,7 +11,7 @@ export default class control {
 	public readonly Characteristic!: typeof Characteristic;
 	constructor(
 		private readonly platform: wallboxPlatform,
-		private wallboxapi = new wallboxAPI(this.platform),
+		private wallboxapi = new wallboxAPI(platform),
 	) { }
 
 	createControlService(device: any, type: string): Service {
@@ -79,7 +79,7 @@ export default class control {
 			.onSet(this.setControlUnits.bind(this, device, controlService));
 	}
 
-	async setControlAmps(device: any, controlService: Service, value: any): Promise<CharacteristicValue> {
+	async setControlAmps(device: any, controlService: Service, value: any) {
 		let statusCode;
 		let currentMode;
 		if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -110,15 +110,14 @@ export default class control {
 				case 209:
 					this.platform.log.info('Car must be connected for this operation');
 					controlService.updateCharacteristic(this.platform.Characteristic.TargetTemperature, controlService.getCharacteristic(this.platform.Characteristic.CurrentTemperature).value);
-					return controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).value!;
+					return;
 				case 210:
 					this.platform.log.info('Charger must be unlocked for this operation');
 					this.platform.log.warn('Car Connected. Unlock charger to start session');
 					controlService.updateCharacteristic(this.platform.Characteristic.TargetTemperature, controlService.getCharacteristic(this.platform.Characteristic.CurrentTemperature).value);
-					return controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).value!;
+					return;
 				}
 			case 'standbyMode':
-				// falls through
 			case 'chargingMode':
 				this.platform.log.debug('set amps to %s', amps);
 				if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -140,21 +139,20 @@ export default class control {
 				}
 				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
 			case 'firmwareUpdate':
-				// falls through
 			case 'errorMode':
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
 				this.platform.log.error('the charger %s has a fault condition with code=%s', device.name, statusCode);
 				controlService.updateCharacteristic(this.platform.Characteristic.TargetTemperature, controlService.getCharacteristic(this.platform.Characteristic.CurrentTemperature).value);
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			default:
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
 				controlService.updateCharacteristic(this.platform.Characteristic.TargetTemperature, controlService.getCharacteristic(this.platform.Characteristic.CurrentTemperature).value);
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			}
 		}
 	}
 
-	async setControlState(device: any, controlService: Service, value: any): Promise<CharacteristicValue> {
+	async setControlState(device: any, controlService: Service, value: any) {
 		let statusCode;
 		let currentMode;
 		if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -183,7 +181,7 @@ export default class control {
 					this.platform.log.info('Car must be connected for this operation');
 				}
 				controlService.updateCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState, controlService.getCharacteristic(this.platform.Characteristic.CurrentHeatingCoolingState).value);
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			case 'standbyMode':
 				this.platform.log.info('Waiting for a charge request');
 				if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -204,7 +202,7 @@ export default class control {
 						break;
 					}
 				}
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			case 'chargingMode':
 				this.platform.log.debug('toggle control %s', controlService.getCharacteristic(this.platform.Characteristic.Name).value);
 				if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -225,7 +223,7 @@ export default class control {
 						break;
 					}
 				}
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			case 'firmwareUpdate':
 				// falls through
 			case 'errorMode':
@@ -236,7 +234,7 @@ export default class control {
 			default:
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
 				controlService.updateCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState, controlService.getCharacteristic(this.platform.Characteristic.CurrentHeatingCoolingState).value);
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			}
 		}
 	}

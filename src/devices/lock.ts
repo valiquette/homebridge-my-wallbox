@@ -10,7 +10,7 @@ export default class lockMechanism {
 	public readonly Characteristic!: typeof Characteristic;
 	constructor(
 		private readonly platform: wallboxPlatform,
-		private wallboxapi = new wallboxAPI(this.platform),
+		private wallboxapi = new wallboxAPI(platform),
 	) {}
 
 	createLockAccessory(device: any, config: any, uuid: string, lockAccessory: PlatformAccessory) {
@@ -54,7 +54,7 @@ export default class lockMechanism {
 			.onSet(this.setLockTargetState.bind(this, lockService))
 			.onGet(this.getLockTargetState.bind(this, lockService));
 		lockService.getCharacteristic(this.platform.Characteristic.LockCurrentState)
-		//.onSet(this.setLockCurrentState.bind(this, lockService))
+		  //.onSet(this.setLockCurrentState.bind(this, lockService))
 			.onGet(this.getLockCurrentState.bind(this, device, lockService));
 	}
 
@@ -64,23 +64,19 @@ export default class lockMechanism {
 		return currentValue;
 	}
 
-	setLockCurrentState(lockService: Service, value: any): Promise<CharacteristicValue> {
+	setLockCurrentState(lockService: Service, value: any) {
 		this.platform.log.info('Set State %s', lockService.getCharacteristic(this.platform.Characteristic.Name).value);
 		if (lockService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
 			throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 		} else {
-			let currentValue: any;
 			if (value === true) {
 				this.platform.log.info('%s locked', lockService.getCharacteristic(this.platform.Characteristic.Name).value);
-				currentValue = this.platform.Characteristic.LockCurrentState.SECURED;
-				lockService.updateCharacteristic(this.platform.Characteristic.LockCurrentState, this.platform.Characteristic.LockCurrentState.SECURED)
+				lockService.updateCharacteristic(this.platform.Characteristic.LockCurrentState, this.platform.Characteristic.LockCurrentState.SECURED);
 			} else {
-				currentValue = this.platform.Characteristic.LockCurrentState.UNSECURED;
 				this.platform.log.info('%s unlocked', lockService.getCharacteristic(this.platform.Characteristic.Name).value);
-				lockService.updateCharacteristic(this.platform.Characteristic.LockCurrentState, this.platform.Characteristic.LockCurrentState.UNSECURED)
+				lockService.updateCharacteristic(this.platform.Characteristic.LockCurrentState, this.platform.Characteristic.LockCurrentState.UNSECURED);
 			}
-			lockService.updateCharacteristic(this.platform.Characteristic.LockCurrentState, currentValue);
-			return currentValue;
+			return;
 		}
 	}
 
@@ -89,7 +85,7 @@ export default class lockMechanism {
 		return currentValue;
 	}
 
-	async setLockTargetState(lockService: Service, value: any): Promise<CharacteristicValue> {
+	async setLockTargetState(lockService: Service, value: any) {
 		if (lockService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
 			throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 		} else {
@@ -134,7 +130,7 @@ export default class lockMechanism {
 					this.platform.log.error('Failed to unlock Wallbox');
 				}
 			}
-			return lockService.getCharacteristic(this.platform.Characteristic.LockCurrentState).value!;
+			return;
 		}
 	}
 }
