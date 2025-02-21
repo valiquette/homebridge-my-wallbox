@@ -6,6 +6,8 @@ dist
 Thumbs.db
 .vscode
 .prettierrc
+.npmignore
+.gitignore
 
 # Dependency directories
 node_modules/
