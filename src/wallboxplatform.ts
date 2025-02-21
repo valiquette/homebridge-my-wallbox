@@ -25,8 +25,6 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 		public readonly log: Logging,
 		public readonly config: PlatformConfig,
 		public readonly api: API,
-
-		//private wallboxapi = new wallboxAPI(this, this.log)
 	) {
 		this.Service = api.hap.Service;
 		this.Characteristic = api.hap.Characteristic;

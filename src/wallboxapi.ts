@@ -17,7 +17,6 @@ export default class wallboxAPI {
 	public readonly Characteristic!: typeof Characteristic;
 	constructor(
 		private readonly platform: wallboxPlatform,
-		//private readonly log: wallboxPlatform,
 	) {
 		//this.interceptorId = attach()
 	}
