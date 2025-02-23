@@ -34,9 +34,9 @@ export default class battery {
 	getStatusLowBattery(batteryStatus: Service): Promise<CharacteristicValue> {
 		const batteryValue: any = batteryStatus.getCharacteristic(this.platform.Characteristic.BatteryLevel).value;
 		let currentValue: any = batteryStatus.getCharacteristic(this.platform.Characteristic.StatusLowBattery).value;
-		if (batteryValue <= 10) {
+		if (batteryValue <= 1) {
 			this.platform.log.warn('Battery Status Low %s%', batteryValue);
-			batteryStatus.setCharacteristic(this.platform.Characteristic.StatusLowBattery, this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
+			batteryStatus.updateCharacteristic(this.platform.Characteristic.StatusLowBattery, this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW);
 			currentValue = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
 		}
 		return currentValue;

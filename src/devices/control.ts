@@ -19,29 +19,29 @@ export default class control {
 		this.platform.log.debug('create new control');
 		let currentAmps;
 		if (this.platform.useFahrenheit) {
-			currentAmps = (((device.maxAvailableCurrent - 32 + 0.01) * 5) / 9).toFixed(2);
+			currentAmps = (((device.maxAvailableCurrent - 32 + 0.01) * 5) / 9).toFixed(0);
 		} else {
 			currentAmps = device.maxAvailableCurrent;
 		}
 		const controlService = new this.platform.Service.Thermostat(type, device.id);
 		controlService
+			.addCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+		controlService
 			.setCharacteristic(this.platform.Characteristic.Name, device.name + ' ' + type)
 			.setCharacteristic(this.platform.Characteristic.StatusFault, this.platform.Characteristic.StatusFault.NO_FAULT)
 			.setCharacteristic(this.platform.Characteristic.TargetTemperature, currentAmps)
 			.setCharacteristic(this.platform.Characteristic.CurrentTemperature, currentAmps)
-			.setCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits, this.platform.useFahrenheit)
-			.setCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState, 0)
-			.setCharacteristic(this.platform.Characteristic.CurrentHeatingCoolingState, 0);
+			.setCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits, this.platform.useFahrenheit);
 		return controlService;
 	}
 
 	configureControlService(device: any, controlService: Service) {
-		let min;
-		let max;
-		let step;
+		let min: any;
+		let max: any;
+		let step: any;
 		if (this.platform.useFahrenheit) {
 			min = -14.5;
-			max = 4.5; //4.45
+			max = 4.5;
 			step = 0.5;
 			if (device.maxAvailableCurrent === 48) {
 				max = 9;
@@ -56,27 +56,28 @@ export default class control {
 		}
 
 		this.platform.log.debug('configured %s control for %s', controlService.getCharacteristic(this.platform.Characteristic.Name).value, device.name);
-		controlService
-			.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
-			.setProps({
-				minValue: 0,
-				maxValue: 1,
-			})
+		controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).setProps({
+			minValue: 0,
+			maxValue: 1,
+			validValues: [0, 1]
+		});
+		controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
 			.onGet(this.getControlState.bind(this, controlService))
-			.onSet(this.setControlState.bind(this, device, controlService));
-		controlService
-			.getCharacteristic(this.platform.Characteristic.TargetTemperature)
-			.setProps({
-				minValue: min,
-				maxValue: max,
-				minStep: step,
-			})
+			.onSet(this.setControlState.bind(this, device, controlService))
+
+		controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature)
 			.onGet(this.getControlAmps.bind(this, controlService))
 			.onSet(this.setControlAmps.bind(this, device, controlService));
-		controlService
-			.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
+
+		controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
+			minValue: min,
+			maxValue: max,
+			minStep: step
+		})
+
+		controlService.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
 			.onGet(this.getControlUnits.bind(this, controlService))
-			.onSet(this.setControlUnits.bind(this, device, controlService));
+			.onSet(this.setControlUnits.bind(this, controlService));
 	}
 
 	async setControlAmps(device: any, controlService: Service, value: any) {
@@ -86,9 +87,9 @@ export default class control {
 			throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 		} else {
 			controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).updateValue(value);
-			let amps;
+			let amps: any;
 			if (this.platform.useFahrenheit) {
-				amps = (value * 1.8 + 32 + 0.01).toFixed(2);
+				amps = (value * 1.8 + 32 + 0.01).toFixed(0);
 			} else {
 				amps = value;
 			}
@@ -137,7 +138,7 @@ export default class control {
 						break;
 					}
 				}
-				return controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).value!;
+				return;
 			case 'firmwareUpdate':
 			case 'errorMode':
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
@@ -239,15 +240,28 @@ export default class control {
 		}
 	}
 
-	setControlUnits(device: any, controlService: Service, value: any): Promise<CharacteristicValue> {
+	setControlUnits(controlService: Service, value: any) {
 		if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
 			throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 		} else {
-			//this.platform.useFahrenheit=value
-			//controlService.updateCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits), value)
-			this.platform.log.debug('change unit value to %s', value);
-			const currentValue: any = controlService.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits).value;
-			return currentValue;
+			//this.platform.useFahrenheit = value
+			controlService.updateCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits, value)
+			if(value == 0){
+				this.platform.log.debug('change unit value to celsius');
+				//controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
+				//	minValue: 6,
+				//	maxValue: 40,
+				//	minStep: 1
+				//})
+			} else {
+				this.platform.log.debug('change unit value to fahrenheit');
+				//controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
+				//	minValue: -14.5,
+				//	maxValue: 4.5,
+				//	minStep: 0.5
+				//})
+			}
+			return;
 		}
 	}
 

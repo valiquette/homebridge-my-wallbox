@@ -193,23 +193,6 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 						const lockService = lockAccessory.getService(this.Service.LockMechanism);
 						this.lockMechanism.configureLockService(chargerData, lockService);
 
-						if (this.showSensor) {
-							const sensorService = this.sensor.createSensorService(chargerData, 'SOC');
-							this.sensor.configureSensorService(chargerData, sensorService);
-							const service = lockAccessory.getService(this.Service.HumiditySensor);
-							if (!service) {
-								lockAccessory.addService(sensorService);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-							lockAccessory.getService(this.Service.LockMechanism).addLinkedService(sensorService);
-						} else {
-							const service = lockAccessory.getService(this.Service.HumiditySensor);
-							if (service) {
-								lockAccessory.removeService(this.Service);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-						}
-
 						if (this.showBattery) {
 							const batteryService = this.battery.createBatteryService(chargerData);
 							this.battery.configureBatteryService(batteryService);
@@ -221,13 +204,30 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 							lockAccessory.getService(this.Service.LockMechanism).addLinkedService(batteryService);
 							this.amps[batteryService.subtype] = chargerData.maxChgCurrent;
 						} else {
-							const service = lockAccessory.getService(this.Service.Battery);
-							if (service) {
-								lockAccessory.removeService(this.Service);
+							const batteryService = lockAccessory.getService(this.Service.Battery);
+							if (batteryService) {
+								lockAccessory.removeService(batteryService);
 								this.api.updatePlatformAccessories([lockAccessory]);
 							}
 						}
 
+						if (this.showSensor) {
+							const sensorService = this.sensor.createSensorService(chargerData, 'SOC');
+							this.sensor.configureSensorService(chargerData, sensorService);
+							const service = lockAccessory.getService(this.Service.HumiditySensor);
+							if (!service) {
+								lockAccessory.addService(sensorService);
+								this.api.updatePlatformAccessories([lockAccessory]);
+							}
+							lockAccessory.getService(this.Service.LockMechanism).addLinkedService(sensorService);
+						} else {
+							const sensorService = lockAccessory.getService(this.Service.HumiditySensor);
+							if (sensorService) {
+								lockAccessory.removeService(sensorService);
+								this.api.updatePlatformAccessories([lockAccessory]);
+							}
+						}
+							// option 4 will display all for development
 						if (this.showControls === 5 || this.showControls === 4) {
 							const outletService = lockAccessory.getService(this.Service.Outlet);
 							if (!outletService) {
@@ -240,9 +240,9 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 								this.api.updatePlatformAccessories([lockAccessory]);
 							}
 						} else {
-							const service = lockAccessory.getService(this.Service.Outlet);
-							if (service) {
-								lockAccessory.removeService(this.Service);
+							const outletService = lockAccessory.getService(this.Service.Outlet);
+							if (outletService) {
+								lockAccessory.removeService(outletService);
 								this.api.updatePlatformAccessories([lockAccessory]);
 							}
 						}
@@ -259,9 +259,9 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 								this.api.updatePlatformAccessories([lockAccessory]);
 							}
 						} else {
-							const service = lockAccessory.getService(this.Service.Thermostat);
-							if (service) {
-								lockAccessory.removeService(this.Service);
+							const controlService = lockAccessory.getService(this.Service.Thermostat);
+							if (controlService) {
+								lockAccessory.removeService(controlService);
 								this.api.updatePlatformAccessories([lockAccessory]);
 							}
 						}
@@ -536,9 +536,10 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				if (this.showControls === 3 || this.showControls === 4) {
 					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
 					controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(false);
+					controlService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
 					if (this.useFahrenheit) {
-						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(0));
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(0));
 					} else {
 						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
 						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
@@ -546,7 +547,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				if (this.showBattery) {
 					batteryService.getCharacteristic(this.Characteristic.ChargingState).updateValue(this.Characteristic.ChargingState.NOT_CHARGING);
-					batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(this.calcBattery(batteryService, added_kWh, chargingTime));
+					batteryService.getCharacteristic(this.Characteristic.BatteryLevel).updateValue(batteryPercent);
 					if (this.showSensor) {
 						sensorService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
 					}
@@ -566,9 +567,10 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				if (this.showControls === 3 || this.showControls === 4) {
 					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(true);
 					controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(true);
+					controlService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
 					if (this.useFahrenheit) {
-						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(0));
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(0));
 					} else {
 						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
 						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
@@ -595,10 +597,11 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				if (this.showControls === 3 || this.showControls === 4) {
 					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
-					controlService.getCharacteristic(this.Characteristic.CurrentHeatingCoolingState).updateValue(false);
+					controlService.getCharacteristic(this.Characteristic.TargetHeatingCoolingState).updateValue(false);
+					controlService.getCharacteristic(this.Characteristic.CurrentRelativeHumidity).updateValue(batteryPercent);
 					if (this.useFahrenheit) {
-						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
-						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(2));
+						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(0));
+						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue((((maxAmps - 32 + 0.01) * 5) / 9).toFixed(0));
 					} else {
 						controlService.getCharacteristic(this.Characteristic.CurrentTemperature).updateValue(maxAmps);
 						controlService.getCharacteristic(this.Characteristic.TargetTemperature).updateValue(maxAmps);
