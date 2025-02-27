@@ -3,6 +3,7 @@
 	"headerDisplay": "Homebridge plugin for WallBox Pulsar Charger",
 	"pluginType": "platform",
 	"singular": true,
+	"strictValidation": true,
 	"schema": {
 		"type": "object",
 		"properties": {
@@ -90,6 +91,12 @@
 				"required": false,
 				"placeholder": "Leave blank for all locations"
 			},
+			"groupName": {
+				"title": "Group Name",
+				"type": "string",
+				"required": false,
+				"placeholder": "Leave blank for all groups"
+			},
 			"showControls": {
 				"title": "Show Charger Controls",
 				"type": "integer",
@@ -138,7 +145,7 @@
 				"type": "boolean",
 				"required": false,
 				"default": false,
-				"description": "Do you want to log user related messages in information log, if uncheck these will be logged to debug log. This may be usefull for troubleshooting."
+				"description": "Do you want to log user token related messages in information log, if uncheck these will be logged to debug log. This may be usefull for troubleshooting."
 			}
 		}
 	},
@@ -174,7 +181,8 @@
       "type": "flex",
       "flex-flow": "row wrap",
       "items": [
-        "locationName"
+        "locationName",
+				"groupName"
       ]
     },
 		{

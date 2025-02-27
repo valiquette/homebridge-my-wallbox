@@ -1,5 +1,11 @@
 # Changes
 
+## 1.1.24
+Update
+-  Bumped dependencies.
+-  Fixed control display decimal place and suppress cool and auto. This service will need to be removed and re added
+-  Refactored in Typescript
+
 ## 1.1.23
 Update
 -  Bumped dependencies.

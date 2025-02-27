@@ -1,23 +1,16 @@
 {
 	"name": "homebridge-my-wallbox",
 	"displayName": "Wallbox",
-	"version": "1.1.23",
+	"version": "1.1.24",
 	"description": "Wallbox Charger platform plugin for [Homebridge](https://github.com/nfarina/homebridge).",
-	"main": "index.js",
+	"main": "dist/index.js",
 	"dependencies": {
-		"axios": "^1.7.7",
+		"axios": "^1.8.1",
 		"retry-axios": "^2.6.0"
 	},
 	"engines": {
-		"homebridge": "^1.8.0 || ^2.0.0-beta.0",
-		"node": "^18.20.0 || ^20.17.0 || ^22.3.0"
-	},
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/valiquette/homebridge-my-wallbox"
+		"homebridge": "^1.8.0 || ^1.9.0 || ^2.0.0-beta.0",
+		"node": "^18.20.0 || ^20.18.0 || ^22.14.0"
 	},
 	"keywords": [
 		"homebridge-plugin",
@@ -27,8 +20,31 @@
 	],
 	"author": "John Valiquette",
 	"license": "MIT",
+	"homepage": "https://github.com/valiquette/homebridge-my-wallbox#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/valiquette/homebridge-my-wallbox"
+	},
 	"bugs": {
 		"url": "https://github.com/valiquette/homebridge-my-wallbox/issues"
 	},
-	"homepage": "https://github.com/valiquette/homebridge-my-wallbox#readme"
+	"scripts": {
+		"build": "rimraf ./dist && tsc",
+		"lint": "eslint . --max-warnings=0",
+		"prepublishOnly": "npm run lint && npm run build",
+		"watch": "npm run build && npm link && nodemon"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.21.0",
+		"@types/eslint__js": "^8.42.3",
+		"@types/node": "^22.8.6",
+		"eslint": "^9.21.0",
+		"globals": "^15.15.0",
+		"homebridge": "^2.0.0-beta.0",
+		"nodemon": "^3.1.7",
+		"rimraf": "^6.0.1",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.6.3",
+		"typescript-eslint": "^8.24.1"
+	}
 }
