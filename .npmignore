@@ -28,5 +28,4 @@ tsconfig.json
 # prettier
 .prettierrc
 
-# nodemon
-nodemon.json
+
