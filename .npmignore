@@ -1,0 +1,26 @@
+# Ignore source code
+src
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# ignore file
+package-lock.json
+
+# ------------- Defaults ------------- #
+
+# gitHub actions
+.github
+
+# eslint
+eslint.config.js
+
+# typescript
+tsconfig.json
+
+# vscode
+.vscode
+
+# nodemon
+nodemon.json
