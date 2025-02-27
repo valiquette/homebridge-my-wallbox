@@ -227,7 +227,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 								this.api.updatePlatformAccessories([lockAccessory]);
 							}
 						}
-							// option 4 will display all for development
+						// option 4 will display all for development
 						if (this.showControls === 5 || this.showControls === 4) {
 							const outletService = lockAccessory.getService(this.Service.Outlet);
 							if (!outletService) {
@@ -456,7 +456,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			this.log.error('Failed to update charger status. \n%s', err);
 		});
 		try {
-			this.log.debug('response status %s', statusResponse.status);
+			this.log.debug('response status %s', statusResponse.status); ///503 throw error
 			if (statusResponse.status === 200) {
 				this.updateStatus(statusResponse.data);
 			}
@@ -519,6 +519,10 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			case 'lockedMode':
 				// falls through
 			case 'readyMode':
+				if(lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
+					this.log.info('%s charger online at %s! The connection was restored.',
+						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
+				}
 				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
 				if (charger.statusID === 210) {
 					lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
@@ -554,6 +558,10 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				break;
 			case 'chargingMode':
+				if(lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
+					this.log.info('%s charger online at %s! The connection was restored.',
+						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
+				}
 				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
 				lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
 				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
@@ -585,6 +593,10 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				break;
 			case 'standbyMode':
+				if(lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
+					this.log.info('%s charger online at %s! The connection was restored.',
+						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
+				}
 				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
 				lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
 				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);

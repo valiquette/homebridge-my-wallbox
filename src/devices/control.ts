@@ -25,7 +25,7 @@ export default class control {
 		}
 		const controlService = new this.platform.Service.Thermostat(type, device.id);
 		controlService
-			.addCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+			.addCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity);
 		controlService
 			.setCharacteristic(this.platform.Characteristic.Name, device.name + ' ' + type)
 			.setCharacteristic(this.platform.Characteristic.StatusFault, this.platform.Characteristic.StatusFault.NO_FAULT)
@@ -59,11 +59,11 @@ export default class control {
 		controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState).setProps({
 			minValue: 0,
 			maxValue: 1,
-			validValues: [0, 1]
+			validValues: [0, 1],
 		});
 		controlService.getCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState)
 			.onGet(this.getControlState.bind(this, controlService))
-			.onSet(this.setControlState.bind(this, device, controlService))
+			.onSet(this.setControlState.bind(this, device, controlService));
 
 		controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature)
 			.onGet(this.getControlAmps.bind(this, controlService))
@@ -72,8 +72,8 @@ export default class control {
 		controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
 			minValue: min,
 			maxValue: max,
-			minStep: step
-		})
+			minStep: step,
+		});
 
 		controlService.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
 			.onGet(this.getControlUnits.bind(this, controlService))
@@ -119,6 +119,7 @@ export default class control {
 					return;
 				}
 			case 'standbyMode':
+				// falls through
 			case 'chargingMode':
 				this.platform.log.debug('set amps to %s', amps);
 				if (controlService.getCharacteristic(this.platform.Characteristic.StatusFault).value === this.platform.Characteristic.StatusFault.GENERAL_FAULT) {
@@ -140,6 +141,7 @@ export default class control {
 				}
 				return;
 			case 'firmwareUpdate':
+				// falls through
 			case 'errorMode':
 				this.platform.log.info('This opertation cannot be completed at this time, status %s', statusCode);
 				this.platform.log.error('the charger %s has a fault condition with code=%s', device.name, statusCode);
@@ -245,8 +247,8 @@ export default class control {
 			throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 		} else {
 			//this.platform.useFahrenheit = value
-			controlService.updateCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits, value)
-			if(value == 0){
+			controlService.updateCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits, value);
+			if(value === 0){
 				this.platform.log.debug('change unit value to celsius');
 				//controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
 				//	minValue: 6,
