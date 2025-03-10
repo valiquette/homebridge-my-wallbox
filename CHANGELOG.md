@@ -1,5 +1,11 @@
 # Changes
 
+## 1.1.25
+Fix
+-  Bumped dependencies.
+-  Fixed fail to load condition with node.js 20
+-  Improved error handling
+
 ## 1.1.24
 Update
 -  Bumped dependencies.

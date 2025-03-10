@@ -363,7 +363,7 @@ export default class wallboxAPI {
 			});
 			if (response.status === 200) {
 				if (this.platform.showAPIMessages) {
-					this.platform.log.debug('get chargerdata response', JSON.stringify(response.data, null, 2));
+					this.platform.log.debug('get charger response', JSON.stringify(response.data, null, 2));
 				}
 				return response.data;
 			}

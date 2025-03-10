@@ -66,7 +66,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 		this.showUserMessages = config.showUserMessages ? config.showUserMessages : false;
 		this.userId;
 		this.userUid;
-		this.model_name;
+		this.model_name = 'unknown';
 		this.cars = config.cars;
 		this.locationName = config.locationName;
 		this.groupName = config.groupName;
@@ -166,138 +166,142 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				.forEach((group: { chargers: any[]; uid: any; name: any; }) => {
 					//this.log.info('Found group for %s ', group.name)
 					group.chargers.forEach(async charger => {
-						//get model info
-						const chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch((err: any) => {
-							this.log.error('Failed to get charger info for build. \n%s', err);
-						});
-						this.model_name = chargerInfo.data[0].attributes.model_name;
-						this.log.info('Found device in location %s', chargerInfo.data[0].attributes.location_name);
-						this.log.info('Found charger %s with software %s', charger.name, charger.software.currentVersion);
-						if (charger.software.updateAvailable) {
-							this.log.warn('%s software update %s is available', charger.name, charger.software.latestVersion);
-						}
-						this.log.info('Found charger %s with id %s in %s group', charger.name, charger.id, group.name);
-
-						//loop each charger
-						const chargerData = await this.wallboxapi.getChargerData(this.token, charger.id).catch((err: any) => {
-							this.log.error('Failed to get charger data for build. \n%s', err);
-						});
-						const chargerConfig = await this.wallboxapi.getChargerConfig(this.token, charger.id).catch((err: any) => {
-							this.log.error('Failed to get charger configs for build. \n%s', err);
-						});
-
-						const uuid = this.genUUID(chargerData.uid);
-						const index = this.accessories.findIndex(accessory => accessory.UUID === uuid);
-						const lockAccessory = this.lockMechanism.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
-
-						const lockService = lockAccessory.getService(this.Service.LockMechanism);
-						this.lockMechanism.configureLockService(chargerData, lockService);
-
-						if (this.showBattery) {
-							const batteryService = this.battery.createBatteryService(chargerData);
-							this.battery.configureBatteryService(batteryService);
-							const service = lockAccessory.getService(this.Service.Battery);
-							if (!service) {
-								lockAccessory.addService(batteryService);
-								this.api.updatePlatformAccessories([lockAccessory]);
+						try {
+							//get model info
+							const chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch((err: any) => {
+								this.log.error('Failed to get charger info for build. \n%s', err);
+							});
+							this.model_name = chargerInfo.data[0].attributes.model_name;
+							this.log.info('Found device in location %s', chargerInfo.data[0].attributes.location_name);
+							this.log.info('Found charger %s with software %s', charger.name, charger.software.currentVersion);
+							if (charger.software.updateAvailable) {
+								this.log.warn('%s software update %s is available', charger.name, charger.software.latestVersion);
 							}
-							lockAccessory.getService(this.Service.LockMechanism).addLinkedService(batteryService);
-							this.amps[batteryService.subtype] = chargerData.maxChgCurrent;
-						} else {
-							const batteryService = lockAccessory.getService(this.Service.Battery);
-							if (batteryService) {
-								lockAccessory.removeService(batteryService);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-						}
+							this.log.info('Found charger %s with id %s in %s group', charger.name, charger.id, group.name);
 
-						if (this.showSensor) {
-							const sensorService = this.sensor.createSensorService(chargerData, 'SOC');
-							this.sensor.configureSensorService(chargerData, sensorService);
-							const service = lockAccessory.getService(this.Service.HumiditySensor);
-							if (!service) {
-								lockAccessory.addService(sensorService);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-							lockAccessory.getService(this.Service.LockMechanism).addLinkedService(sensorService);
-						} else {
-							const sensorService = lockAccessory.getService(this.Service.HumiditySensor);
-							if (sensorService) {
-								lockAccessory.removeService(sensorService);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-						}
-						// option 4 will display all for development
-						if (this.showControls === 5 || this.showControls === 4) {
-							const outletService = lockAccessory.getService(this.Service.Outlet);
-							if (!outletService) {
-								const outletService = this.outlet.createOutletService(chargerData, 'Charging');
-								this.outlet.configureOutletService(chargerData, outletService);
-								lockAccessory.addService(outletService);
-								this.api.updatePlatformAccessories([lockAccessory]);
+							//loop each charger
+							const chargerData = await this.wallboxapi.getChargerData(this.token, charger.id).catch((err: any) => {
+								this.log.error('Failed to get charger data for build. \n%s', err);
+							});
+							const chargerConfig = await this.wallboxapi.getChargerConfig(this.token, charger.id).catch((err: any) => {
+								this.log.error('Failed to get charger configs for build. \n%s', err);
+							});
+
+							const uuid = this.genUUID(chargerData.uid);
+							const index = this.accessories.findIndex(accessory => accessory.UUID === uuid);
+							const lockAccessory = this.lockMechanism.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
+
+							const lockService = lockAccessory.getService(this.Service.LockMechanism);
+							this.lockMechanism.configureLockService(chargerData, lockService);
+
+							if (this.showBattery) {
+								const batteryService = this.battery.createBatteryService(chargerData);
+								this.battery.configureBatteryService(batteryService);
+								const service = lockAccessory.getService(this.Service.Battery);
+								if (!service) {
+									lockAccessory.addService(batteryService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
+								lockAccessory.getService(this.Service.LockMechanism).addLinkedService(batteryService);
+								this.amps[batteryService.subtype] = chargerData.maxChgCurrent;
 							} else {
-								this.outlet.configureOutletService(chargerData, outletService);
-								this.api.updatePlatformAccessories([lockAccessory]);
+								const batteryService = lockAccessory.getService(this.Service.Battery);
+								if (batteryService) {
+									lockAccessory.removeService(batteryService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
 							}
-						} else {
-							const outletService = lockAccessory.getService(this.Service.Outlet);
-							if (outletService) {
-								lockAccessory.removeService(outletService);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-						}
 
-						if (this.showControls === 3 || this.showControls === 4) {
-							const controlService = lockAccessory.getService(this.Service.Thermostat);
-							if (!controlService) {
-								const controlService = this.control.createControlService(chargerData, 'Charging Amps');
-								this.control.configureControlService(chargerData, controlService);
-								lockAccessory.addService(controlService);
-								this.api.updatePlatformAccessories([lockAccessory]);
+							if (this.showSensor) {
+								const sensorService = this.sensor.createSensorService(chargerData, 'SOC');
+								this.sensor.configureSensorService(chargerData, sensorService);
+								const service = lockAccessory.getService(this.Service.HumiditySensor);
+								if (!service) {
+									lockAccessory.addService(sensorService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
+								lockAccessory.getService(this.Service.LockMechanism).addLinkedService(sensorService);
 							} else {
-								this.control.configureControlService(chargerData, controlService);
-								this.api.updatePlatformAccessories([lockAccessory]);
+								const sensorService = lockAccessory.getService(this.Service.HumiditySensor);
+								if (sensorService) {
+									lockAccessory.removeService(sensorService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
 							}
-						} else {
-							const controlService = lockAccessory.getService(this.Service.Thermostat);
-							if (controlService) {
-								lockAccessory.removeService(controlService);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-						}
-
-						if (this.showControls === 1 || this.showControls === 4) {
-							const switchService = lockAccessory.getService(this.Service.Switch);
-							if (!switchService) {
-								const switchService = this.basicSwitch.createSwitchService(chargerData, 'Charging');
-								this.basicSwitch.configureSwitchService(chargerData, switchService);
-								lockAccessory.addService(switchService);
-								lockAccessory.getService(this.Service.LockMechanism).addLinkedService(switchService);
+							// option 4 will display all for development
+							if (this.showControls === 5 || this.showControls === 4) {
+								const outletService = lockAccessory.getService(this.Service.Outlet);
+								if (!outletService) {
+									const outletService = this.outlet.createOutletService(chargerData, 'Charging');
+									this.outlet.configureOutletService(chargerData, outletService);
+									lockAccessory.addService(outletService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								} else {
+									this.outlet.configureOutletService(chargerData, outletService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
 							} else {
-								this.basicSwitch.configureSwitchService(chargerData, switchService);
-								this.api.updatePlatformAccessories([lockAccessory]);
+								const outletService = lockAccessory.getService(this.Service.Outlet);
+								if (outletService) {
+									lockAccessory.removeService(outletService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
 							}
-						} else {
-							const service = lockAccessory.getService(this.Service.Switch);
-							if (service) {
-								lockAccessory.removeService(this.Service);
-								this.api.updatePlatformAccessories([lockAccessory]);
-							}
-						}
 
-						if (!this.accessories[index]) {
-							this.log.debug('Registering platform accessory');
-							this.accessories[index] = lockAccessory;
-							this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lockAccessory]);
+							if (this.showControls === 3 || this.showControls === 4) {
+								const controlService = lockAccessory.getService(this.Service.Thermostat);
+								if (!controlService) {
+									const controlService = this.control.createControlService(chargerData, 'Charging Amps');
+									this.control.configureControlService(chargerData, controlService);
+									lockAccessory.addService(controlService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								} else {
+									this.control.configureControlService(chargerData, controlService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
+							} else {
+								const controlService = lockAccessory.getService(this.Service.Thermostat);
+								if (controlService) {
+									lockAccessory.removeService(controlService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
+							}
+
+							if (this.showControls === 1 || this.showControls === 4) {
+								const switchService = lockAccessory.getService(this.Service.Switch);
+								if (!switchService) {
+									const switchService = this.basicSwitch.createSwitchService(chargerData, 'Charging');
+									this.basicSwitch.configureSwitchService(chargerData, switchService);
+									lockAccessory.addService(switchService);
+									lockAccessory.getService(this.Service.LockMechanism).addLinkedService(switchService);
+								} else {
+									this.basicSwitch.configureSwitchService(chargerData, switchService);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
+							} else {
+								const service = lockAccessory.getService(this.Service.Switch);
+								if (service) {
+									lockAccessory.removeService(this.Service);
+									this.api.updatePlatformAccessories([lockAccessory]);
+								}
+							}
+
+							if (!this.accessories[index]) {
+								this.log.debug('Registering platform accessory');
+								this.accessories[index] = lockAccessory;
+								this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lockAccessory]);
+							}
+							this.setChargerRefresh(chargerData);
+							this.getStatus(chargerData.id);
+						} catch (err: any) {
+							this.log.error(err);
 						}
-						this.setChargerRefresh(chargerData);
-						this.getStatus(chargerData.id);
 					});
 				});
 			setTimeout(() => {
 				this.log.success('Wallbox platform finished loading');
 			}, 2500);
-		} catch (err) {
+		} catch (err: any) {
 			if (this.retryAttempt < this.retryMax) {
 				this.retryAttempt++;
 				this.log.error('Failed to get devices. Retry attempt %s of %s in %s seconds...', this.retryAttempt, this.retryMax, this.retryWait);
@@ -519,7 +523,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			case 'lockedMode':
 				// falls through
 			case 'readyMode':
-				if(lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
+				if (lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
 					this.log.info('%s charger online at %s! The connection was restored.',
 						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
 				}
@@ -558,7 +562,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				break;
 			case 'chargingMode':
-				if(lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
+				if (lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
 					this.log.info('%s charger online at %s! The connection was restored.',
 						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
 				}
@@ -593,7 +597,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				break;
 			case 'standbyMode':
-				if(lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
+				if (lockService.getCharacteristic(this.Characteristic.StatusFault).value === this.Characteristic.StatusFault.GENERAL_FAULT) {
 					this.log.info('%s charger online at %s! The connection was restored.',
 						chargerName, new Date(charger.config_data.sync_timestamp * 1000).toLocaleString());
 				}
