@@ -94,7 +94,7 @@ export default class control {
 				amps = value;
 			}
 			const chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => {
-				this.platform.log.error('Failed to get charger data. \n%s', err);
+				this.platform.log.error('Failed to get charger data.', err);
 			});
 			try {
 				statusCode = chargerData.status;
@@ -126,7 +126,8 @@ export default class control {
 					throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 				} else {
 					const response = await this.wallboxapi.setAmps(this.platform.token, device.id, amps).catch(err => {
-						this.platform.log.error('Failed to set amps. \n%s', err);
+						this.platform.log.error('Failed to set amps.', err);
+						return err;
 					});
 					switch (response.status) {
 					case 200:
@@ -163,7 +164,8 @@ export default class control {
 		} else {
 			controlService.updateCharacteristic(this.platform.Characteristic.TargetHeatingCoolingState, value);
 			const chargerData = await this.wallboxapi.getChargerData(this.platform.token, device.id).catch(err => {
-				this.platform.log.error('Failed to get charger data. \n%s', err);
+				this.platform.log.error('Failed to get charger data.', err);
+				return err;
 			});
 			try {
 				statusCode = chargerData.status;
@@ -191,7 +193,8 @@ export default class control {
 					throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 				} else {
 					const response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'resume').catch(err => {
-						this.platform.log.error('Failed to resume. \n%s', err);
+						this.platform.log.error('Failed to resume.', err);
+						return err;
 					});
 					switch (response.status) {
 					case 200:
@@ -212,7 +215,8 @@ export default class control {
 					throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
 				} else {
 					const response = await this.wallboxapi.remoteAction(this.platform.token, device.id, 'pause').catch(err => {
-						this.platform.log.error('Failed to pause. \n%s', err);
+						this.platform.log.error('Failed to pause.', err);
+						return err;
 					});
 					switch (response.status) {
 					case 200:
@@ -248,7 +252,7 @@ export default class control {
 		} else {
 			//this.platform.useFahrenheit = value
 			controlService.updateCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits, value);
-			if(value === 0){
+			if (value === 0){
 				this.platform.log.debug('change unit value to celsius');
 				//controlService.getCharacteristic(this.platform.Characteristic.TargetTemperature).setProps({
 				//	minValue: 6,

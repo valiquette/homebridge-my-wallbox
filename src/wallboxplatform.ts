@@ -7,7 +7,7 @@ import { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory,
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 
 import wallboxAPI from './wallboxapi.js';
-import lockMechanism from './devices/lock.js';
+import lock from './devices/lock.js';
 import battery from './devices/battery.js';
 import sensor from './devices/sensor.js';
 import basicSwitch from './devices/switch.js';
@@ -33,7 +33,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 		this.log.debug('Finished initializing platform:', config.name);
 
 		this.wallboxapi = new wallboxAPI(this);
-		this.lockMechanism = new lockMechanism(this);
+		this.lock = new lock(this);
 		this.battery = new battery(this);
 		this.sensor = new sensor(this);
 		this.basicSwitch = new basicSwitch(this);
@@ -81,6 +81,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 		}
 		if (!config.email || !config.password) {
 			this.log.error('Valid email and password are required in order to communicate with wallbox, please check the plugin config');
+			return;
 		}
 		this.log.info('Starting Wallbox platform using homebridge API', api.version);
 
@@ -96,9 +97,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 
 	configureAccessory(accessory: PlatformAccessory) {
 		// Added cached devices to the accessories array
-		this.log.debug('Found cached accessory %s', accessory.displayName);
+		this.log.debug('Found cached accessory %s with %s', accessory.displayName, accessory.services);
 		this.accessories.push(accessory);
-		//this.accessories[accessory.UUID] = accessory
 	}
 
 	identify() {
@@ -111,7 +111,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			this.log.info('Getting Account info...');
 			// login to the API and get the token
 			const email = await this.wallboxapi.checkEmail(this.email).catch((err: any) => {
-				this.log.error('Failed to get email for build. \n%s', err);
+				this.log.error('Failed to get email.');
+				throw err;
 			});
 			this.log.info('Email status %s', email.data.attributes.status);
 			if (email.data.attributes.status !== 'confirmed') {
@@ -120,7 +121,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 
 			//get signin & token
 			const signin = await this.wallboxapi.signin(this.email, this.password).catch((err: any) => {
-				this.log.error('Failed to get signin for build. \n%s', err);
+				this.log.error('Failed to get signin.');
+				throw err;
 			});
 			this.log.debug('Found user ID %s', signin.data.attributes.user_id);
 			this.log.debug('Found token  %s********************%s', signin.data.attributes.token.substring(0, 35), signin.data.attributes.token.substring(signin.data.attributes.token.length - 35));
@@ -142,7 +144,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 
 			//get me
 			const me = await this.wallboxapi.me(this.token).catch((err: any) => {
-				this.log.error('Failed to get my info for build. \n%s', err);
+				this.log.error('Failed to get my info for build.');
+				throw err;
 			});
 			this.log.debug('Found user id %s', me.data.id);
 			this.log.info('Found account for %s %s', me.data.attributes.name, me.data.attributes.surname);
@@ -150,7 +153,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 
 			//get groups
 			const groups = await this.wallboxapi.getChargerGroups(this.token).catch((err: any) => {
-				this.log.error('Failed to get groups for build. \n%s', err);
+				this.log.error('Failed to get groups for build.');
+				throw err;
 			});
 			groups.result.groups
 				.filter((group: { name: any }) => {
@@ -165,11 +169,12 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				})
 				.forEach((group: { chargers: any[]; uid: any; name: any; }) => {
 					//this.log.info('Found group for %s ', group.name)
-					group.chargers.forEach(async charger => {
+					group.chargers.forEach(async (charger) => {
 						try {
 							//get model info
 							const chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch((err: any) => {
-								this.log.error('Failed to get charger info for build. \n%s', err);
+								this.log.error('Failed to get charger info for build.');
+								throw err;
 							});
 							this.model_name = chargerInfo.data[0].attributes.model_name;
 							this.log.info('Found device in location %s', chargerInfo.data[0].attributes.location_name);
@@ -181,18 +186,30 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 
 							//loop each charger
 							const chargerData = await this.wallboxapi.getChargerData(this.token, charger.id).catch((err: any) => {
-								this.log.error('Failed to get charger data for build. \n%s', err);
+								this.log.error('Failed to get charger data.');
+								throw err;
 							});
 							const chargerConfig = await this.wallboxapi.getChargerConfig(this.token, charger.id).catch((err: any) => {
-								this.log.error('Failed to get charger configs for build. \n%s', err);
+								this.log.error('Failed to get charger configs.');
+								throw err;
 							});
 
-							const uuid = this.genUUID(chargerData.uid);
-							const index = this.accessories.findIndex(accessory => accessory.UUID === uuid);
-							const lockAccessory = this.lockMechanism.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
+							const uuid: any = this.genUUID(chargerData.uid);
+							const index: any = this.accessories.findIndex(accessory => accessory.UUID === uuid);
+							let lockAccessory: PlatformAccessory;
 
+							if (!this.accessories[index]) {
+								this.log.debug('Registering platform accessory');
+								lockAccessory = new lock(this).createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
+								this.accessories.push(lockAccessory);
+								this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lockAccessory]);
+							} else {
+								this.log.debug('Accessory exists, refreshing');
+								lockAccessory= new lock(this).createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
+								//lockAccessory = this.lock.createLockAccessory(chargerData, chargerConfig, uuid, this.accessories[index]);
+							}
 							const lockService = lockAccessory.getService(this.Service.LockMechanism);
-							this.lockMechanism.configureLockService(chargerData, lockService);
+							this.lock.configureLockService(chargerData, lockService);
 
 							if (this.showBattery) {
 								const batteryService = this.battery.createBatteryService(chargerData);
@@ -202,7 +219,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 									lockAccessory.addService(batteryService);
 									this.api.updatePlatformAccessories([lockAccessory]);
 								}
-								lockAccessory.getService(this.Service.LockMechanism).addLinkedService(batteryService);
+								lockAccessory.getService(this.Service.LockMechanism)!.addLinkedService(batteryService);
 								this.amps[batteryService.subtype] = chargerData.maxChgCurrent;
 							} else {
 								const batteryService = lockAccessory.getService(this.Service.Battery);
@@ -220,7 +237,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 									lockAccessory.addService(sensorService);
 									this.api.updatePlatformAccessories([lockAccessory]);
 								}
-								lockAccessory.getService(this.Service.LockMechanism).addLinkedService(sensorService);
+								lockAccessory.getService(this.Service.LockMechanism)!.addLinkedService(sensorService);
 							} else {
 								const sensorService = lockAccessory.getService(this.Service.HumiditySensor);
 								if (sensorService) {
@@ -273,7 +290,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 									const switchService = this.basicSwitch.createSwitchService(chargerData, 'Charging');
 									this.basicSwitch.configureSwitchService(chargerData, switchService);
 									lockAccessory.addService(switchService);
-									lockAccessory.getService(this.Service.LockMechanism).addLinkedService(switchService);
+									lockAccessory.getService(this.Service.LockMechanism)!.addLinkedService(switchService);
 								} else {
 									this.basicSwitch.configureSwitchService(chargerData, switchService);
 									this.api.updatePlatformAccessories([lockAccessory]);
@@ -281,20 +298,16 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 							} else {
 								const service = lockAccessory.getService(this.Service.Switch);
 								if (service) {
-									lockAccessory.removeService(this.Service);
+									lockAccessory.removeService(service);
 									this.api.updatePlatformAccessories([lockAccessory]);
 								}
 							}
 
-							if (!this.accessories[index]) {
-								this.log.debug('Registering platform accessory');
-								this.accessories[index] = lockAccessory;
-								this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lockAccessory]);
-							}
 							this.setChargerRefresh(chargerData);
 							this.getStatus(chargerData.id);
 						} catch (err: any) {
 							this.log.error(err);
+							return err;
 						}
 					});
 				});
@@ -304,7 +317,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 		} catch (err: any) {
 			if (this.retryAttempt < this.retryMax) {
 				this.retryAttempt++;
-				this.log.error('Failed to get devices. Retry attempt %s of %s in %s seconds...', this.retryAttempt, this.retryMax, this.retryWait);
+				this.log.error('Failed to get device "%s". Retry attempt %s of %s in %s seconds...', err, this.retryAttempt, this.retryMax, this.retryWait);
 				setTimeout(async () => {
 					this.getDevices();
 				}, this.retryWait * 1000);
@@ -317,7 +330,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 	async getNewToken(token: any) {
 		try {
 			const refresh = await this.wallboxapi.refresh(token).catch((err: any) => {
-				this.log.error('Failed to refresh token. \n%s', err);
+				this.log.error('Failed to refresh token.');
+				throw err;
 			});
 			if (refresh.status === 200) {
 				if (this.showUserMessages) {
@@ -344,7 +358,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			}
 			if (refresh.status === 401) {
 				const signin = await this.wallboxapi.signin(this.email, this.password).catch((err: any) => {
-					this.log.error('Failed to get signin for build. \n%s', err);
+					this.log.error('Failed to get signin and get new token.');
+					throw err;
 				});
 				if (this.showUserMessages) {
 					this.log.info('New token %s********************%s', signin.data.attributes.token.substring(0, 35), signin.data.attributes.token.substring(signin.data.attributes.token.length - 35));
@@ -375,7 +390,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 			this.getStatus(device.id);
 			try {
 				const checkUpdate = await this.wallboxapi.getChargerConfig(this.token, device.id).catch((err: any) => {
-					this.log.error('Failed to refresh charger configs. \n%s', err);
+					this.log.error('Failed to refresh charger configs.');
+					throw err;
 				});
 				if (checkUpdate.software.updateAvailable) {
 					this.log.warn('%s software update %s is available', checkUpdate.name, checkUpdate.software.latestVersion);
@@ -456,24 +472,27 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 	}
 
 	async getStatus(id: any) {
-		const statusResponse = await this.wallboxapi.getChargerStatus(this.token, id).catch((err: any) => {
-			this.log.error('Failed to update charger status. \n%s', err);
-		});
 		try {
-			this.log.debug('response status %s', statusResponse.status); ///503 throw error
+			const statusResponse = await this.wallboxapi.getChargerStatus(this.token, id).catch((err: any) => {
+				this.log.error('Failed to update charger status.');
+				throw err;
+			});
+
+			this.log.debug('response status %s', statusResponse.status);
 			if (statusResponse.status === 200) {
 				this.updateStatus(statusResponse.data);
 			}
 		} catch (err) {
-			this.log.error('Error updating status. \n%s', err);
+			this.log.error('Error updating status. %s', err);
 		}
+		return;
 	}
 
 	async updateStatus(charger: any) {
 		try {
 			const chargerID = charger.config_data.charger_id;
 			const chargerUID = charger.config_data.uid;
-			const locked = charger.config_data.locked;
+			const lockState = charger.config_data.locked;
 			const maxAmps = charger.config_data.max_charging_current;
 			const chargerName = charger.name;
 			const statusID = charger.status_id;
@@ -533,8 +552,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				} else {
 					lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(false);
 				}
-				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
-				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
+				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(lockState);
+				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(lockState);
 				if (this.showControls === 1 || this.showControls === 4) {
 					switchService.getCharacteristic(this.Characteristic.On).updateValue(false);
 				}
@@ -568,8 +587,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
 				lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
-				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
-				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
+				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(lockState);
+				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(lockState);
 				if (this.showControls === 1 || this.showControls === 4) {
 					switchService.getCharacteristic(this.Characteristic.On).updateValue(true);
 				}
@@ -603,8 +622,8 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 				}
 				lockService.getCharacteristic(this.Characteristic.StatusFault).updateValue(this.Characteristic.StatusFault.NO_FAULT);
 				lockService.getCharacteristic(this.Characteristic.OutletInUse).updateValue(true);
-				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(locked);
-				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(locked);
+				lockService.getCharacteristic(this.Characteristic.LockCurrentState).updateValue(lockState);
+				lockService.getCharacteristic(this.Characteristic.LockTargetState).updateValue(lockState);
 				if (this.showControls === 1 || this.showControls === 4) {
 					switchService.getCharacteristic(this.Characteristic.On).updateValue(false);
 				}
