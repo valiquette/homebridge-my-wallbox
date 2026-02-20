@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.26
+Fix
+-  Bumped dependencies.
+-  Improved error handling
+
 ## 1.1.25
 Fix
 -  Bumped dependencies.
