@@ -1,5 +1,12 @@
 # Changes
 
+## 1.1.27
+Fix
+-  Bumped dependencies.
+-  Changed API endpoint for call during load
+-  fixed issue Errorlog Failed to get charger info for build #32
+
+
 ## 1.1.26
 Fix
 -  Bumped dependencies.

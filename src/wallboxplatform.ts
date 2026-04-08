@@ -172,6 +172,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 					group.chargers.forEach(async (charger) => {
 						try {
 							//get model info
+							//const chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch((err: any) => {
 							const chargerInfo = await this.wallboxapi.getCharger(this.token, group.uid).catch((err: any) => {
 								this.log.error('Failed to get charger info for build.');
 								throw err;
