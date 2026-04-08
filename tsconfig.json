@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+		"skipLibCheck": true,
+    "target": "esnext",
     "lib": [
       "DOM",
-      "ES2022"
+      "esnext"
     ],
     "rootDir": "src",
     "module": "nodenext",
@@ -15,8 +16,7 @@
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-		"skipLibCheck": true
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "eslint.config.js",
