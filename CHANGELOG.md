@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.28
+Fix
+-  Bumped dependencies to fix stack call error
+
 ## 1.1.27
 Fix
 -  Bumped dependencies.
