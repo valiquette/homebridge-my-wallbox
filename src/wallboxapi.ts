@@ -293,34 +293,6 @@ export default class wallboxAPI {
 		return response;
 	}
 
-	async getChargerNew(token: any, charger_id: any) {
-		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger');
-		const response = await axios({
-			method: 'get',
-			baseURL: endpoint,
-			url: `/chargers/config/${charger_id}`,
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-				'User-Agent': `${PLUGIN_NAME}/${PLUGIN_VERSION}`,
-				'Accept-Encoding': 'gzip,deflate,compress',
-			},
-			responseType: 'json',
-		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger %s', err.message);
-			throw err.code;
-		});
-		if (response.status === 200) {
-			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get charger response', JSON.stringify(response.data, null, 2));
-			}
-			return response.data;
-		}
-		return response;
-	}
-
 	async getCharger(token: any, group_id: any) {
 		this.platform.apiCount++;
 		this.platform.log.debug('Retrieving charger');
