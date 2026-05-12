@@ -1,7 +1,7 @@
 {
 	"name": "homebridge-my-wallbox",
 	"displayName": "Wallbox",
-	"version": "1.1.28",
+	"version": "1.1.29",
 	"type": "module",
 	"description": "Wallbox Charger platform plugin for [Homebridge](https://github.com/nfarina/homebridge).",
 	"author": "John Valiquette",
@@ -22,7 +22,7 @@
 	],
 	"main": "dist/index.js",
 	"engines": {
-		"homebridge": "^1.11.0 || ^2.0.0-beta.0",
+		"homebridge": "^1.11.0 || ^2.0.0",
 		"node": "^20.20.0 || ^22.22.0 ||^24.15.0"
 	},
 	"scripts": {

@@ -1,48 +1,53 @@
 # Changes
 
+## 1.1.29
+update
+-  Bumped dependencies
+-  Code Cleanup
+
 ## 1.1.28
 Fix
 -  Bumped dependencies to fix stack call error
 
 ## 1.1.27
 Fix
--  Bumped dependencies.
+-  Bumped dependencies
 -  Changed API endpoint for call during load
 -  fixed issue Errorlog Failed to get charger info for build #32
 
 
 ## 1.1.26
 Fix
--  Bumped dependencies.
+-  Bumped dependencies
 -  Improved error handling
 
 ## 1.1.25
 Fix
--  Bumped dependencies.
+-  Bumped dependencies
 -  Fixed fail to load condition with node.js 20
 -  Improved error handling
 
 ## 1.1.24
 Update
--  Bumped dependencies.
+-  Bumped dependencies
 -  Fixed control display decimal place and suppress cool and auto. This service will need to be removed and re added
 -  Refactored in Typescript
 
 ## 1.1.23
 Update
--  Bumped dependencies.
+-  Bumped dependencies
 -  Updated header info for API call
 -  Renamed Start/pause to Charging
 
 ## 1.1.22
 Update
--  Bumped dependencies.
+-  Bumped dependencies
 -  homebridge 2.0 support
 
 ## 1.1.21
 Fix
 -  Fix bug with pause switch/outlet.
--  Bumped dependencies.
+-  Bumped dependencies
 
 ## 1.1.20
 Update
@@ -52,13 +57,13 @@ Update
 
 ## 1.1.19
 Update
--  Bumped dependencies.
+-  Bumped dependencies
 
 ## 1.1.18
 Update
 -  Added suppport for node.js v20.
 -  Removed support for node.js v14.
--  Bumped dependencies.
+-  Bumped dependencies
 
 ## 1.1.17
 Update
@@ -72,7 +77,7 @@ Fix
 Update
 - Updated switch and outlet naming.
 - Code cleanup.
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.15
 Fix
@@ -103,7 +108,7 @@ Fix
 - Fixed bug with token refresh (issue #16).
 Update
 - Improved error handling.
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.9
 Fix
@@ -116,12 +121,12 @@ Update
 - Added option to suppress API responses in debug log.
 - Code cleanup.
 - Improved error handling.
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.7
 Update
 - Code cleanup.
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.6
 Fix
@@ -129,7 +134,7 @@ Fix
 Update
 - Improved error handling for lock.
 - Updated Axios to address error for unexpected end of file error.
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.5
 Update
@@ -137,21 +142,21 @@ Update
 
 ## 1.1.4
 Update
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.3
 Update
 - Code cleanup
 - Cleanup log messaging.
 - Option to add Humidity Sensor for Battery percentage to create HomeKit automations. (HomeKit doesn't allow for automations off of battery percentage)
-- Bumped dependencies.
+- Bumped dependencies
 
 ## 1.1.2
 Update
 - Refactored token refresh logic, ttl is now 24 hours and will refresh when <2% of time is remaining.
 - Will now record count all API calls in debug log for reporting period.
 -	Added explicit user-agent info to API calls.
--	Bumped dependencies.
+-	Bumped dependencies
 - Code cleanup.
 
 ## 1.1.1
@@ -168,7 +173,7 @@ Update
 - Added support for additional status messages.
 - Refactored code for battery status
 -	Added status descriptions to logging after being dropped from API response.
-- Bumped dependencies.
+- Bumped dependencies
 -	Code cleanup.
 - Updated Readme
 - Fixed some typos in logging output.

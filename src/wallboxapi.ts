@@ -2,8 +2,8 @@
 
 'use strict';
 
-import type { Service, Characteristic } from 'homebridge';
-import { wallboxPlatform } from './wallboxplatform.js';
+import type { Logging } from 'homebridge';
+import  wallboxPlatform from './wallboxplatform.js';
 import * as rax from 'retry-axios';
 import axios from 'axios';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './settings.js';
@@ -15,15 +15,14 @@ const endpoint = 'https://api.wall-box.com';
 const interceptorId = rax.attach();
 
 export default class wallboxAPI {
-	public readonly Service!: typeof Service;
-	public readonly Characteristic!: typeof Characteristic;
 	constructor(
 		private readonly platform: wallboxPlatform,
+		private readonly log: Logging = platform.log,
 	) {}
 
 	async checkEmail(email: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving device');
+		this.log.debug('Retrieving device');
 		const response = await axios({
 			method: 'get',
 			baseURL: userEndpoint,
@@ -41,17 +40,17 @@ export default class wallboxAPI {
 				backoffType: 'exponential',
 				onRetryAttempt: async (err) => {
 					const cfg: any = rax.getConfig(err);
-					this.platform.log.warn(`${err.message} retrying checking email , attempt #${cfg.currentRetryAttempt}`);
+					this.log.warn(`${err.message} retrying checking email , attempt #${cfg.currentRetryAttempt}`);
 				},
 			},
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error checking email %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error checking email %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('check email response', JSON.stringify(response.data, null, 2));
+				this.log.debug('check email response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -61,7 +60,7 @@ export default class wallboxAPI {
 	async signin(email: string, password: string) {
 		this.platform.apiCount++;
 		const b64encoded = Buffer.from(email + ':' + password, 'utf8').toString('base64');
-		this.platform.log.debug('Retrieving token');
+		this.log.debug('Retrieving token');
 		const response = await axios({
 			method: 'get',
 			baseURL: userEndpoint,
@@ -88,17 +87,17 @@ export default class wallboxAPI {
 				backoffType: 'exponential',
 				onRetryAttempt: async (err) => {
 					const cfg: any = rax.getConfig(err);
-					this.platform.log.warn(`${err.message} retrying signin , attempt #${cfg.currentRetryAttempt}`);
+					this.log.warn(`${err.message} retrying signin , attempt #${cfg.currentRetryAttempt}`);
 				},
 			},
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error signing in and getting token %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error signing in and getting token %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('signin response', JSON.stringify(response.data, null, 2));
+				this.log.debug('signin response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -107,7 +106,7 @@ export default class wallboxAPI {
 
 	async me(token: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving my info');
+		this.log.debug('Retrieving my info');
 		const response = await axios({
 			method: 'get',
 			baseURL: userEndpoint,
@@ -121,13 +120,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting my info %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting my info %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get me response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get me response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -136,7 +135,7 @@ export default class wallboxAPI {
 
 	async refresh(refreshToken: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Refreshing token');
+		this.log.debug('Refreshing token');
 		const response = await axios({
 			method: 'get',
 			baseURL: userEndpoint,
@@ -163,18 +162,18 @@ export default class wallboxAPI {
 				backoffType: 'exponential',
 				onRetryAttempt: async (err) => {
 					const cfg: any = rax.getConfig(err);
-					this.platform.log.warn(`${err.message} retrying refresh token, attempt #${cfg.currentRetryAttempt}`);
+					this.log.warn(`${err.message} retrying refresh token, attempt #${cfg.currentRetryAttempt}`);
 				},
 			},
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error refreshing token %s', err.message);
-			this.platform.log.warn(err.code);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error refreshing token %s', err.message);
+			this.log.warn(err.code);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('refresh token response', JSON.stringify(response.data, null, 2));
+				this.log.debug('refresh token response', JSON.stringify(response.data, null, 2));
 			}
 			return response;
 		}
@@ -183,7 +182,7 @@ export default class wallboxAPI {
 
 	async spaces(token: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving my info');
+		this.log.debug('Retrieving my info');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -196,13 +195,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting spaces %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting spaces %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get spaces response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get spaces response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -211,7 +210,7 @@ export default class wallboxAPI {
 
 	async getUserId(token: any, userId: any) { // may not be needed, using user/me
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving id');
+		this.log.debug('Retrieving id');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -224,13 +223,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting id %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting id %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get id response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get id response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -239,7 +238,7 @@ export default class wallboxAPI {
 
 	async getUser(token: any, userId: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving user info');
+		this.log.debug('Retrieving user info');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -252,13 +251,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting user id %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting user id %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get user response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get user response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -267,7 +266,7 @@ export default class wallboxAPI {
 
 	async getChargerGroups(token: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger groups');
+		this.log.debug('Retrieving charger groups');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -280,13 +279,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger groups %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting charger groups %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get charger groups data response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get charger groups data response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -295,7 +294,7 @@ export default class wallboxAPI {
 
 	async getCharger(token: any, group_id: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger');
+		this.log.debug('Retrieving charger');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -308,13 +307,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting charger %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get charger response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get charger response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -323,7 +322,7 @@ export default class wallboxAPI {
 
 	async getChargerStatus(token: any, chargerId: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger status');
+		this.log.debug('Retrieving charger status');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -349,20 +348,20 @@ export default class wallboxAPI {
 				backoffType: 'exponential',
 				onRetryAttempt: async (err) => {
 					const cfg: any = rax.getConfig(err);
-					this.platform.log.warn(`${err.message} retrying get status, attempt #${cfg.currentRetryAttempt}`);
+					this.log.warn(`${err.message} retrying get status, attempt #${cfg.currentRetryAttempt}`);
 				},
 			},
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger status %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting charger status %s', err.message);
 			if(err.response){
-				this.platform.log.warn(JSON.stringify(err.response.data, null, 2));
+				this.log.warn(JSON.stringify(err.response.data, null, 2));
 			}
 			throw err.code;
 		});
 		if (response.status === 200) {
-			//if(this.platform.showAPIMessages){this.platform.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
-			//if (this.platform.showUserMessages){this.platform.log.info('get charger status %s, lock %s',response.data.status_id, response.data.config_data.locked)}
+			//if(this.platform.showAPIMessages){this.log.debug('get charger status response',JSON.stringify(response.data,null,2))}
+			//if (this.platform.showUserMessages){this.log.info('get charger status %s, lock %s',response.data.status_id, response.data.config_data.locked)}
 			return response;
 		}
 		return response;
@@ -370,7 +369,7 @@ export default class wallboxAPI {
 
 	async getChargerData(token: any, chargerId: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger data');
+		this.log.debug('Retrieving charger data');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -383,16 +382,16 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger data %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting charger data %s', err.message);
 			if(err.response){
-				this.platform.log.warn(JSON.stringify(err.response.data, null, 2));
+				this.log.warn(JSON.stringify(err.response.data, null, 2));
 			}
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get charger data response', JSON.stringify(response.data.data.chargerData, null, 2));
+				this.log.debug('get charger data response', JSON.stringify(response.data.data.chargerData, null, 2));
 			}
 			return response.data.data.chargerData;
 		}
@@ -401,7 +400,7 @@ export default class wallboxAPI {
 
 	async getChargerConfig(token: any, chargerId: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger config');
+		this.log.debug('Retrieving charger config');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -414,16 +413,16 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger config %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting charger config %s', err.message);
 			if(err.response){
-				this.platform.log.warn(JSON.stringify(err.response.data, null, 2));
+				this.log.warn(JSON.stringify(err.response.data, null, 2));
 			}
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get charger config response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get charger config response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -432,7 +431,7 @@ export default class wallboxAPI {
 
 	async getLastSession(token: any) {
 		this.platform.apiCount++;
-		this.platform.log.debug('Retrieving charger session');
+		this.log.debug('Retrieving charger session');
 		const response = await axios({
 			method: 'get',
 			baseURL: endpoint,
@@ -445,13 +444,13 @@ export default class wallboxAPI {
 			},
 			responseType: 'json',
 		}).catch(err => {
-			this.platform.log.debug(JSON.stringify(err, null, 2));
-			this.platform.log.error('Error getting charger session %s', err.message);
+			this.log.debug(JSON.stringify(err, null, 2));
+			this.log.error('Error getting charger session %s', err.message);
 			throw err.code;
 		});
 		if (response.status === 200) {
 			if (this.platform.showAPIMessages) {
-				this.platform.log.debug('get charger session response', JSON.stringify(response.data, null, 2));
+				this.log.debug('get charger session response', JSON.stringify(response.data, null, 2));
 			}
 			return response.data;
 		}
@@ -461,7 +460,7 @@ export default class wallboxAPI {
 	async lock(token: any, chargerId: any, value: any) {
 		try {
 			this.platform.apiCount++;
-			this.platform.log.debug('Setting charger lock state for %s to %s', chargerId, value);
+			this.log.debug('Setting charger lock state for %s to %s', chargerId, value);
 			const response = await axios({
 				method: 'put',
 				baseURL: endpoint,
@@ -477,31 +476,31 @@ export default class wallboxAPI {
 				},
 				responseType: 'json',
 			}).catch(err => {
-				this.platform.log.debug(JSON.stringify(err, null, 2));
-				this.platform.log.error('Error locking charger config %s', err.message);
+				this.log.debug(JSON.stringify(err, null, 2));
+				this.log.error('Error locking charger config %s', err.message);
 				if (err.response) {
-					this.platform.log.warn(JSON.stringify(err.response.data, null, 2));
+					this.log.warn(JSON.stringify(err.response.data, null, 2));
 				}
 				throw err.code;
 			});
 			if (response.status && this.platform.showAPIMessages) {
-				this.platform.log.debug('put lock response status', response.status);
+				this.log.debug('put lock response status', response.status);
 			}
 			if (response.status === 200) {
 				if (this.platform.showAPIMessages) {
-					this.platform.log.debug('put lock response', JSON.stringify(response.data.data.chargerData, null, 2));
+					this.log.debug('put lock response', JSON.stringify(response.data.data.chargerData, null, 2));
 				}
 			}
 			return response;
 		} catch (err) {
-			this.platform.log.error('Error setting lock state state \n%s', err);
+			this.log.error('Error setting lock state state \n%s', err);
 		}
 	}
 
 	async setAmps(token: any, chargerId: any, value: any) {
 		this.platform.apiCount++;
 		try {
-			this.platform.log.debug('Setting amperage for %s to %s', chargerId, value);
+			this.log.debug('Setting amperage for %s to %s', chargerId, value);
 			const response = await axios({
 				method: 'put',
 				baseURL: endpoint,
@@ -517,31 +516,31 @@ export default class wallboxAPI {
 				},
 				responseType: 'json',
 			}).catch(err => {
-				this.platform.log.debug(JSON.stringify(err, null, 2));
-				this.platform.log.error('Error setting amperage %s', err.message);
+				this.log.debug(JSON.stringify(err, null, 2));
+				this.log.error('Error setting amperage %s', err.message);
 				if (err.response) {
-					this.platform.log.warn(JSON.stringify(err.response.data, null, 2));
+					this.log.warn(JSON.stringify(err.response.data, null, 2));
 				}
 				throw err.code;
 			});
 			if (response.status && this.platform.showAPIMessages) {
-				this.platform.log.debug('put setAmps response status', response.status);
+				this.log.debug('put setAmps response status', response.status);
 			}
 			if (response.status === 200) {
 				if (this.platform.showAPIMessages) {
-					this.platform.log.debug('put setAmps response {maxChargingCurrent:%s}', JSON.stringify(response.data.data.chargerData.maxChargingCurrent, null, 2));
+					this.log.debug('put setAmps response {maxChargingCurrent:%s}', JSON.stringify(response.data.data.chargerData.maxChargingCurrent, null, 2));
 				}
 			}
 			return response;
 		} catch (err) {
-			this.platform.log.error('Error setting amperage \n%s', err);
+			this.log.error('Error setting amperage \n%s', err);
 		}
 	}
 
 	async remoteAction(token: any, chargerId: any, value: string) {
 		this.platform.apiCount++;
 		try {
-			this.platform.log.debug('Setting charging state for %s to %s', chargerId, value);
+			this.log.debug('Setting charging state for %s to %s', chargerId, value);
 			let action;
 			switch (value) {
 			case 'start':
@@ -581,24 +580,24 @@ export default class wallboxAPI {
 				},
 				responseType: 'json',
 			}).catch(err => {
-				this.platform.log.debug(JSON.stringify(err, null, 2));
-				this.platform.log.error('Error with remote action %s', err.message);
+				this.log.debug(JSON.stringify(err, null, 2));
+				this.log.error('Error with remote action %s', err.message);
 				if (err.response) {
-					this.platform.log.warn(JSON.stringify(err.response.data, null, 2));
+					this.log.warn(JSON.stringify(err.response.data, null, 2));
 				}
 				throw err.code;
 			});
 			if (response.status && this.platform.showAPIMessages) {
-				this.platform.log.debug('post remote action response status', response.status);
+				this.log.debug('post remote action response status', response.status);
 			}
 			if (response.status === 200) {
 				if (this.platform.showAPIMessages) {
-					this.platform.log.debug('post remote action response', JSON.stringify(response.data, null, 2));
+					this.log.debug('post remote action response', JSON.stringify(response.data, null, 2));
 				}
 			}
 			return response;
 		} catch (err) {
-			this.platform.log.error('Error with remote action \n%s', err);
+			this.log.error('Error with remote action \n%s', err);
 		}
 	}
 }

@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
+import { API, Characteristic, DynamicPlatformPlugin, HAPStatus, HapStatusError, Logging, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 
 import wallboxAPI from './wallboxapi.js';
@@ -16,10 +16,12 @@ import control from './devices/control.js';
 import enumerations from './enumerations.js';
 
 
-export class wallboxPlatform implements DynamicPlatformPlugin {
+export default class wallboxPlatform implements DynamicPlatformPlugin {
 	[x: string]: any;
-	public readonly Service!: typeof Service;
-	public readonly Characteristic!: typeof Characteristic;
+	public readonly Service: typeof Service;
+	public readonly Characteristic: typeof Characteristic;
+	public readonly HAPStatus!: typeof HAPStatus;
+	public readonly HapStatusError: typeof HapStatusError;
 	public readonly accessories: PlatformAccessory[] = [];
 	constructor(
 		public readonly log: Logging,
@@ -28,6 +30,7 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 	) {
 		this.Service = api.hap.Service;
 		this.Characteristic = api.hap.Characteristic;
+		this.HapStatusError = api.hap.HapStatusError;
 		this.genUUID = api.hap.uuid.generate;
 
 		this.log.debug('Finished initializing platform:', config.name);
@@ -72,7 +75,6 @@ export class wallboxPlatform implements DynamicPlatformPlugin {
 		this.groupName = config.groupName;
 		this.locationMatch;
 		this.groupMatch;
-		this.accessories = [];
 		this.amps = [];
 		this.endTime = [];
 		if (this.showControls === 8) {
